@@ -51,9 +51,6 @@ const UserSchema = new Schema(
         age: {
             type: Number
         },
-        isSupervisor: {
-            type: Boolean
-        },
         addedBy: {
             type: Schema.Types.ObjectId,
             ref: "user",
