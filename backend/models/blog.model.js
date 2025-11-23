@@ -3,17 +3,33 @@ const Schema = mongoose.Schema;
 
 const BlogPostSchema = new Schema(
     {
-        title: { type: String, required: true },
-        content: String,
-        author: String,
-        categories: [String],
-        tags: [String]
+        title: { type: String, required: true, trim: true },
+        // slug: { type: String, unique: true, sparse: true },
+        content: { type: String, required: true },
+        excerpt: { type: String, maxlength: 500 },
+        author: { type: Schema.Types.ObjectId, ref: 'user', required: true },
+        // authorName: { type: String },
+        featuredImage: { type: String },
+        images: [String],
+        categories: [{ type: String, trim: true }],
+        tags: [{ type: String, trim: true }],
+        status: {
+            type: String,
+            enum: ['draft', 'published', 'archived'],
+            default: 'draft'
+        },
+        publishedAt: { type: Date },
+        views: { type: Number, default: 0 },
+        isFeatured: { type: Boolean, default: false },
+        seoKeywords: [String],
+        isDeleted: { type: Boolean, default: false }
     },
     {
         timestamps: true,
         versionKey: false,
     }
 );
+
 
 const BlogPostModel = mongoose.model('blogpost', BlogPostSchema);
 module.exports = BlogPostModel;
