@@ -6,11 +6,11 @@ exports.authorization = (roles) => {
     return async (req, res, next) => {
         try {
             if (!roles.includes(req.user.role)) {
-                sendErrorResponse(res, "You are not authorized to perform this operation", 403, true, true);
+                return sendErrorResponse(res, "You are not authorized to perform this operation", 403, true, true);
             }
             next();
         } catch (error) {
-            sendErrorResponse(res, error);
+            return sendErrorResponse(res, error);
         }
     };
 };
