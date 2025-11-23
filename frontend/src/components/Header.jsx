@@ -13,7 +13,15 @@ const navItems = [
   { to: "/academy", label: "Academy" },
   { to: "/blog", label: "Blog" },
   { to: "/merch", label: "Merch" },
-  { to: "/reviews", label: "Reviews" },
+  {
+    to: "/reviews",
+    label: "Reviews",
+    subItems: [
+      { to: "/reviews/broker", label: "Broker" },
+      { to: "/reviews/propfirm", label: "PropFirm" },
+      { to: "/reviews/crypto", label: "Crypto" },
+    ],
+  },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
 ];
@@ -65,6 +73,8 @@ function Header() {
   const user =
     reduxUser || (typeof window !== "undefined" ? getUserCookie() : null);
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const [reviewsDropdownOpen, setReviewsDropdownOpen] = React.useState(false);
+  const [mobileSubmenus, setMobileSubmenus] = React.useState({});
 
   // Sync user from cookie on mount and when storage changes (cross-tab sync)
   const lastSyncedRef = React.useRef(null);
@@ -119,6 +129,7 @@ function Header() {
   // Close mobile menu when route changes
   React.useEffect(() => {
     setOpen(false);
+    setMobileSubmenus({});
   }, [location.pathname]);
 
   // Close menus when clicking outside
@@ -157,6 +168,89 @@ function Header() {
             const isActive =
               location.pathname === n.to ||
               (n.to !== "/" && location.pathname.startsWith(n.to));
+            const hasSubItems = n.subItems && n.subItems.length > 0;
+
+            if (hasSubItems) {
+              return (
+                <div
+                  key={n.to}
+                  className="relative"
+                  onMouseEnter={() => setReviewsDropdownOpen(true)}
+                  onMouseLeave={() => setReviewsDropdownOpen(false)}
+                >
+                  <NavLink
+                    to={n.to}
+                    className={({ isActive }) =>
+                      `relative px-2 xl:px-4 py-2 text-xs xl:text-sm font-medium transition-all duration-200 flex items-center gap-1 ${
+                        isActive
+                          ? "text-white"
+                          : "text-gray-300 hover:text-white"
+                      }`
+                    }
+                  >
+                    <span className="relative z-10 whitespace-nowrap">
+                      {n.label}
+                    </span>
+                    <ChevronDown
+                      className={`h-3 w-3 transition-transform ${
+                        reviewsDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                    {isActive && (
+                      <motion.div
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-600 pointer-events-none"
+                        layoutId="activeIndicator"
+                        layout
+                        style={{
+                          position: "absolute",
+                          bottom: 0,
+                        }}
+                        initial={false}
+                        transition={{
+                          layout: {
+                            type: "spring",
+                            stiffness: 500,
+                            damping: 40,
+                          },
+                        }}
+                      />
+                    )}
+                  </NavLink>
+
+                  {/* Dropdown Menu */}
+                  <AnimatePresence>
+                    {reviewsDropdownOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute top-full left-0 mt-1 w-40 border border-gray-800 bg-gray-900/95 backdrop-blur-xl rounded-lg shadow-2xl overflow-hidden z-50"
+                      >
+                        {n.subItems.map((subItem) => {
+                          const isSubActive = location.pathname === subItem.to;
+                          return (
+                            <Link
+                              key={subItem.to}
+                              to={subItem.to}
+                              className={`block px-4 py-3 text-sm transition-colors ${
+                                isSubActive
+                                  ? "text-white bg-blue-500/10 border-l-2 border-blue-500"
+                                  : "text-gray-300 hover:text-white hover:bg-gray-800/50"
+                              }`}
+                              onClick={() => setReviewsDropdownOpen(false)}
+                            >
+                              {subItem.label}
+                            </Link>
+                          );
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            }
+
             return (
               <NavLink
                 key={n.to}
@@ -349,22 +443,82 @@ function Header() {
               transition={{ duration: 0.3 }}
               className="px-4 py-4 flex flex-col gap-1"
             >
-              {navItems.map((n, index) => (
-                <NavLink
-                  key={n.to}
-                  to={n.to}
-                  onClick={() => setOpen(false)}
-                  className={({ isActive }) =>
-                    `relative px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
-                      isActive
-                        ? "text-white bg-blue-500/10 border-l-2 border-blue-500"
-                        : "text-gray-300 hover:text-white hover:bg-gray-800/50"
-                    }`
-                  }
-                >
-                  {n.label}
-                </NavLink>
-              ))}
+              {navItems.map((n, index) => {
+                const hasSubItems = n.subItems && n.subItems.length > 0;
+                const isActive =
+                  location.pathname === n.to ||
+                  (n.to !== "/" && location.pathname.startsWith(n.to));
+
+                if (hasSubItems) {
+                  const subMenuOpen = mobileSubmenus[n.to] || false;
+                  return (
+                    <div key={n.to}>
+                      <button
+                        onClick={() =>
+                          setMobileSubmenus((prev) => ({
+                            ...prev,
+                            [n.to]: !prev[n.to],
+                          }))
+                        }
+                        className={`w-full text-left px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 flex items-center justify-between ${
+                          isActive
+                            ? "text-white bg-blue-500/10 border-l-2 border-blue-500"
+                            : "text-gray-300 hover:text-white hover:bg-gray-800/50"
+                        }`}
+                      >
+                        <span>{n.label}</span>
+                        <ChevronDown
+                          className={`h-4 w-4 transition-transform ${
+                            subMenuOpen ? "rotate-180" : ""
+                          }`}
+                        />
+                      </button>
+                      {subMenuOpen && (
+                        <div className="ml-4 mt-1 space-y-1 border-l-2 border-gray-800 pl-4">
+                          {n.subItems.map((subItem) => {
+                            const isSubActive =
+                              location.pathname === subItem.to;
+                            return (
+                              <Link
+                                key={subItem.to}
+                                to={subItem.to}
+                                onClick={() => {
+                                  setOpen(false);
+                                  setMobileSubmenus({});
+                                }}
+                                className={`block px-4 py-2 text-sm rounded-lg transition-all duration-200 ${
+                                  isSubActive
+                                    ? "text-white bg-blue-500/10 border-l-2 border-blue-500"
+                                    : "text-gray-400 hover:text-white hover:bg-gray-800/50"
+                                }`}
+                              >
+                                {subItem.label}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                return (
+                  <NavLink
+                    key={n.to}
+                    to={n.to}
+                    onClick={() => setOpen(false)}
+                    className={({ isActive }) =>
+                      `relative px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+                        isActive
+                          ? "text-white bg-blue-500/10 border-l-2 border-blue-500"
+                          : "text-gray-300 hover:text-white hover:bg-gray-800/50"
+                      }`
+                    }
+                  >
+                    {n.label}
+                  </NavLink>
+                );
+              })}
               <div className="pt-4 mt-2 border-t border-gray-800 flex flex-col gap-2">
                 {user ? (
                   <>

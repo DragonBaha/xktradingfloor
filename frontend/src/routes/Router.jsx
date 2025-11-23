@@ -55,6 +55,9 @@ export default function AppRouter() {
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:id" element={<BlogPost />} />
         <Route path="/reviews" element={<Reviews />} />
+        <Route path="/reviews/broker" element={<Reviews />} />
+        <Route path="/reviews/propfirm" element={<Reviews />} />
+        <Route path="/reviews/crypto" element={<Reviews />} />
         <Route path="/reviews/operator" element={<ProtectedRoute><OperatorDashboard /></ProtectedRoute>} />
         <Route path="/reviews/company/new" element={<ProtectedRoute><CompanyForm /></ProtectedRoute>} />
         <Route path="/reviews/company/edit/:companyId" element={<ProtectedRoute><CompanyForm /></ProtectedRoute>} />
