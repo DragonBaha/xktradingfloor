@@ -70,6 +70,10 @@ exports.getAllBlogs = async (req, res) => {
 
         const query = {};
 
+        if (role !== "Admin") {
+            query.author = adminId;
+        }
+
         if (status) {
             query.status = status;
         }
