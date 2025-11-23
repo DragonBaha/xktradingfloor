@@ -1,7 +1,7 @@
 const BlogModel = require("../models/blog.model");
 const UserModel = require("../models/user.model");
 const dayjs = require("dayjs");
-const s3 = require("../helpers/s3.helper");
+const r2 = require("../helpers/r2.helper");
 const { sendSuccessResponse, sendErrorResponse } = require("../utils/response");
 const { getPagination, getPaginationData, escapeRegex } = require("../utils/fn");
 
@@ -17,7 +17,8 @@ exports.createBlog = async (req, res) => {
             const npathN = pathN.replaceAll("\\", "/");
             featuredImage.path = npathN;
 
-            const url = await s3.uploadPublic(featuredImage?.path, `${featuredImage?.filename}`, `Blogs/`);
+            // Upload to Cloudflare R2
+            const url = await r2.uploadPublic(featuredImage?.path, `${featuredImage?.filename}`, `Blogs`);
             featuredImage = url;
         }
 

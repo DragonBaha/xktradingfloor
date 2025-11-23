@@ -16,10 +16,22 @@ module.exports = {
     cookie: {
         expireMs: parseInt(process.env.COOKIE_EXPIRE_MS, 10) || 24 * 60 * 60 * 1000 // Default to 24 hours if not set
     },
-    s3bucket: {
-        public: process.env.S3_PUBLIC_BUCKET,
-        iamUserKey: process.env.IAM_USER_KEY,
-        iamUserSecret: process.env.IAM_USER_SECRET,
-        region: process.env.S3_REGION,
+    // s3bucket: {
+    //     iamUserKey: process.env.S3_IAM_USER_KEY,
+    //     iamUserSecret: process.env.S3_IAM_USER_SECRET,
+    //     region: process.env.S3_REGION,
+    //     public: process.env.S3_PUBLIC_BUCKET,
+    //     private: process.env.S3_PRIVATE_BUCKET,
+    // },
+
+    // Cloudflare R2 Configuration
+    r2: {
+        accountId: process.env.R2_ACCOUNT_ID || (process.env.R2_ENDPOINT ? process.env.R2_ENDPOINT.match(/https:\/\/([^.]+)\.r2\.cloudflarestorage\.com/)?.[1] : null),
+        bucketName: process.env.R2_BUCKET_NAME,
+        accessKeyId: process.env.R2_ACCESS_KEY_ID,
+        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+        endpoint: process.env.R2_ENDPOINT,
+        region: process.env.R2_REGION || "auto",
+        publicDomain: process.env.R2_PUBLIC_DOMAIN,
     },
 };

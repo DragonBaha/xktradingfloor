@@ -11,6 +11,8 @@
     "@sentry/node": "^10.11.0",
     "@sentry/profiling-node": "^10.11.0",
     "@sentry/tracing": "^7.120.4",
+    "@aws-sdk/client-s3": "^3.873.0",
+    "@aws-sdk/s3-request-presigner": "^3.873.0",
     "aws-sdk": "^2.1692.0",
     "bcrypt": "^6.0.0",
     "client-s3": "aws-sdk/client-s3",
