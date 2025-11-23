@@ -20,6 +20,11 @@ const BlogPostSchema = new Schema(
         },
         publishedAt: { type: Date },
         views: { type: Number, default: 0 },
+        viewedBy: [{ 
+            // Track unique viewers - can be user ID or IP address
+            identifier: { type: String, required: true },
+            viewedAt: { type: Date, default: Date.now }
+        }],
         isFeatured: { type: Boolean, default: false },
         seoKeywords: [String],
         isDeleted: { type: Boolean, default: false }
