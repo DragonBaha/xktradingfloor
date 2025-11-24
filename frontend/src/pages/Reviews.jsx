@@ -1,6 +1,6 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { getAllCompanies } from '../controllers/companiesController.js';
 import CompanyCard from '../components/reviews/CompanyCard.jsx';
 import CompanyFilters from '../components/reviews/CompanyFilters.jsx';
@@ -26,7 +26,8 @@ const categoryDescriptions = {
 };
 
 export default function Reviews() {
-  const { category: urlCategory } = useParams();
+  const location = useLocation();
+  const pathname = location.pathname;
   const [allCompanies, setAllCompanies] = React.useState([]);
   const [companies, setCompanies] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -34,23 +35,32 @@ export default function Reviews() {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
 
-  // Get category from URL or filters
-  const activeCategory = urlCategory 
-    ? categoryMap[urlCategory.toLowerCase()] 
-    : (filters.category || null);
-
-  // Update filters when URL category changes (but don't override if user manually set filters on /reviews)
+  // Extract category from URL pathname
   React.useEffect(() => {
-    if (urlCategory) {
-      const mappedCategory = categoryMap[urlCategory.toLowerCase()];
+    const pathParts = pathname.split('/');
+    const categoryFromPath = pathParts[pathParts.length - 1]; // Get last part of path
+    
+    // Check if it's a category route (broker, propfirm, crypto)
+    if (categoryFromPath && categoryFromPath !== 'reviews' && categoryFromPath !== 'operator' && !categoryFromPath.startsWith('company')) {
+      const mappedCategory = categoryMap[categoryFromPath.toLowerCase()];
       if (mappedCategory) {
         // Set category filter when URL has a category
-        setFilters(prev => ({ ...prev, category: mappedCategory }));
+        setFilters(prev => {
+          // Only update if it's different to avoid infinite loops
+          if (prev.category !== mappedCategory) {
+            return { ...prev, category: mappedCategory };
+          }
+          return prev;
+        });
       }
+    } else if (pathname === '/reviews') {
+      // On main reviews page, don't force a category
+      // But keep existing filters if user set them manually
     }
-    // Note: We don't clear the category filter when URL has no category
-    // This allows users to use filters on /reviews page
-  }, [urlCategory]);
+  }, [pathname]);
+
+  // Get category from filters
+  const activeCategory = filters.category || null;
 
   React.useEffect(() => {
     loadCompanies();

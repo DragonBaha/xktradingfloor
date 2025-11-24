@@ -5,16 +5,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { Plus } from "lucide-react";
 import { BlogList } from "../../components/admin/blog/index.js";
 import {
-  fetchAllBlogs,
+  fetchOperatorBlogs,
   deleteBlog,
-  permanentDeleteBlog,
   flagBlog,
   clearError,
 } from "../../redux/slices/blogsSlice.js";
 import { getUserCookie } from "../../utils/cookies.js";
 import ProtectedRoute from "../../components/dashboard/ProtectedRoute.jsx";
 
-function AdminBlogsContent() {
+function OperatorBlogsContent() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { blogs, loading, error } = useSelector((state) => state.blogs);
@@ -25,8 +24,16 @@ function AdminBlogsContent() {
   const [statusFilter, setStatusFilter] = React.useState("");
 
   React.useEffect(() => {
-    dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
-  }, [dispatch, searchQuery, statusFilter]);
+    if (user?.id) {
+      dispatch(
+        fetchOperatorBlogs({
+          operatorId: user.id,
+          search: searchQuery,
+          status: statusFilter,
+        })
+      );
+    }
+  }, [dispatch, user?.id, searchQuery, statusFilter]);
 
   React.useEffect(() => {
     return () => {
@@ -35,10 +42,19 @@ function AdminBlogsContent() {
   }, [dispatch]);
 
   const handleEdit = (blogId) => {
-    navigate(`/admin/blogs/edit/${blogId}`);
+    navigate(`/operator/blogs/edit/${blogId}`);
   };
 
   const handleDelete = async (blogId) => {
+    // Operators can only delete their own blogs
+    const blog = blogs.find((b) => b._id === blogId);
+    const isOwner = blog?.author?._id === user?.id || blog?.author === user?.id;
+
+    if (!isOwner) {
+      alert("You can only delete your own blogs");
+      return;
+    }
+
     if (
       window.confirm(
         "Are you sure you want to delete this blog? This action can be undone."
@@ -46,22 +62,18 @@ function AdminBlogsContent() {
     ) {
       try {
         await dispatch(deleteBlog(blogId)).unwrap();
+        // Refresh the list
+        if (user?.id) {
+          dispatch(
+            fetchOperatorBlogs({
+              operatorId: user.id,
+              search: searchQuery,
+              status: statusFilter,
+            })
+          );
+        }
       } catch (err) {
         alert("Failed to delete blog: " + err);
-      }
-    }
-  };
-
-  const handlePermanentDelete = async (blogId) => {
-    if (
-      window.confirm(
-        "Are you sure you want to permanently delete this blog? This action cannot be undone!"
-      )
-    ) {
-      try {
-        await dispatch(permanentDeleteBlog(blogId)).unwrap();
-      } catch (err) {
-        alert("Failed to permanently delete blog: " + err);
       }
     }
   };
@@ -70,27 +82,24 @@ function AdminBlogsContent() {
     try {
       await dispatch(flagBlog({ blogId, flagType })).unwrap();
       // Refresh the list
-      dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
+      if (user?.id) {
+        dispatch(
+          fetchOperatorBlogs({
+            operatorId: user.id,
+            search: searchQuery,
+            status: statusFilter,
+          })
+        );
+      }
     } catch (err) {
       alert("Failed to flag blog: " + err);
-    }
-  };
-
-  const handleUnflag = async (blogId, flagType) => {
-    // For now, we'll need to update the blog to remove the flag
-    // This might need a backend endpoint
-    try {
-      // Refresh the list - the backend should handle unflagging
-      dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
-    } catch (err) {
-      alert("Failed to unflag blog: " + err);
     }
   };
 
   return (
     <div className="bg-gray-950 text-white min-h-screen">
       <Helmet>
-        <title>Blog Management | XK Trading Floor Admin</title>
+        <title>Blog Management | XK Trading Floor Operator</title>
       </Helmet>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -99,11 +108,11 @@ function AdminBlogsContent() {
           <div>
             <h1 className="text-2xl font-semibold mb-2">Blog Management</h1>
             <p className="text-sm text-gray-400">
-              Create, edit, and manage blog posts
+              Manage your blogs and flag inappropriate content
             </p>
           </div>
           <button
-            onClick={() => navigate("/admin/blogs/create")}
+            onClick={() => navigate("/operator/blogs/create")}
             className="btn btn-primary flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
@@ -123,27 +132,23 @@ function AdminBlogsContent() {
           loading={loading}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          onPermanentDelete={handlePermanentDelete}
           onFlag={handleFlag}
-          onUnflag={handleUnflag}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           statusFilter={statusFilter}
           onStatusFilterChange={setStatusFilter}
           canDelete
-          canPermanentDelete
           canFlag
-          canUnflag
         />
       </div>
     </div>
   );
 }
 
-export default function AdminBlogs() {
+export default function OperatorBlogs() {
   return (
-    <ProtectedRoute role="admin">
-      <AdminBlogsContent />
+    <ProtectedRoute>
+      <OperatorBlogsContent />
     </ProtectedRoute>
   );
 }

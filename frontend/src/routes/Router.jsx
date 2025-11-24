@@ -23,6 +23,8 @@ import Profile from "../pages/Profile.jsx";
 import OperatorDashboard from "../pages/OperatorDashboard.jsx";
 import CompanyForm from "../pages/CompanyForm.jsx";
 import AdminBlogs from "../pages/admin/AdminBlogs.jsx";
+import MyBlogs from "../pages/MyBlogs.jsx";
+import OperatorBlogs from "../pages/operator/OperatorBlogs.jsx";
 import { BlogForm } from "../components/admin/blog/index.js";
 import ProtectedRoute from "../components/dashboard/ProtectedRoute.jsx";
 
@@ -115,23 +117,77 @@ export default function AppRouter() {
             </ProtectedRoute>
           }
         />
+        {/* Admin Blog Routes */}
         <Route path="/admin/blogs" element={<AdminBlogs />} />
         <Route
           path="/admin/blogs/create"
           element={
-            <ProtectedRoute>
-              <BlogForm />
+            <ProtectedRoute role="admin">
+              <BlogForm redirectPath="/admin/blogs" />
             </ProtectedRoute>
           }
         />
         <Route
           path="/admin/blogs/edit/:blogId"
           element={
-            <ProtectedRoute>
-              <BlogForm />
+            <ProtectedRoute role="admin">
+              <BlogForm redirectPath="/admin/blogs" />
             </ProtectedRoute>
           }
         />
+
+        {/* User Blog Routes */}
+        <Route
+          path="/blogs/my-blogs"
+          element={
+            <ProtectedRoute>
+              <MyBlogs />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/blogs/create"
+          element={
+            <ProtectedRoute>
+              <BlogForm redirectPath="/blogs/my-blogs" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/blogs/edit/:blogId"
+          element={
+            <ProtectedRoute>
+              <BlogForm redirectPath="/blogs/my-blogs" />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Operator Blog Routes */}
+        <Route
+          path="/operator/blogs"
+          element={
+            <ProtectedRoute>
+              <OperatorBlogs />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/operator/blogs/create"
+          element={
+            <ProtectedRoute>
+              <BlogForm redirectPath="/operator/blogs" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/operator/blogs/edit/:blogId"
+          element={
+            <ProtectedRoute>
+              <BlogForm redirectPath="/operator/blogs" />
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>

@@ -23,7 +23,7 @@ function Footer() {
             <li><Link to="/academy" className="hover:text-white">Academy</Link></li>
             <li><Link to="/blog" className="hover:text-white">Blog</Link></li>
             <li><Link to="/reviews" className="hover:text-white">Reviews</Link></li>
-            <li><Link to="/merch" className="hover:text-white">Merch</Link></li>
+            {/* <li><Link to="/merch" className="hover:text-white">Merch</Link></li> */} {/* Hidden - uncomment to re-enable */}
           </ul>
         </div>
         <div>
