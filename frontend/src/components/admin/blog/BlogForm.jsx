@@ -1,574 +1,347 @@
 import React from "react";
-import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { X, Upload, Image as ImageIcon } from "lucide-react";
-import BlogEditor from "./BlogEditor.jsx";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Loader2, Upload, XCircle } from "lucide-react";
 import {
+  fetchBlogById,
   createBlog,
   updateBlog,
-  fetchBlogById,
+  clearCurrentBlog,
   clearError,
 } from "../../../redux/slices/blogsSlice.js";
-import { getUserCookie } from "../../../utils/cookies.js";
 
-export default function BlogForm() {
-  const { blogId } = useParams();
-  const navigate = useNavigate();
+const defaultState = {
+  title: "",
+  excerpt: "",
+  content: "",
+  status: "draft",
+  categories: "",
+  tags: "",
+  seoKeywords: "",
+  isFeatured: false,
+};
+
+function parseList(value = "") {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const params = useParams();
+  const blogId = blogIdProp ?? params.blogId;
+  const isEditing = Boolean(blogId);
+
   const { currentBlog, loading, error } = useSelector((state) => state.blogs);
-  const reduxUser = useSelector((state) => state.auth.user);
-  const user = reduxUser || getUserCookie();
-  const isEdit = !!blogId;
 
-  const [formData, setFormData] = React.useState({
-    title: "",
-    content: "",
-    excerpt: "",
-    categories: [],
-    tags: [],
-    status: "draft",
-    isFeatured: false,
-    seoKeywords: [],
-  });
-
-  const [files, setFiles] = React.useState({
-    featuredImage: null,
-    images: [],
-  });
-
-  const [previews, setPreviews] = React.useState({
-    featuredImage: null,
-    images: [],
-  });
-
-  const [categoryInput, setCategoryInput] = React.useState("");
-  const [tagInput, setTagInput] = React.useState("");
-  const [seoKeywordInput, setSeoKeywordInput] = React.useState("");
+  const [formState, setFormState] = React.useState(defaultState);
+  const [featuredImageFile, setFeaturedImageFile] = React.useState(null);
+  const [featuredImagePreview, setFeaturedImagePreview] = React.useState("");
+  const [localError, setLocalError] = React.useState("");
 
   React.useEffect(() => {
-    if (isEdit && blogId) {
+    if (isEditing) {
       dispatch(fetchBlogById(blogId));
+    } else {
+      dispatch(clearCurrentBlog());
     }
+
     return () => {
+      dispatch(clearCurrentBlog());
       dispatch(clearError());
     };
-  }, [blogId, isEdit, dispatch]);
+  }, [dispatch, blogId, isEditing]);
 
   React.useEffect(() => {
-    if (isEdit && currentBlog) {
-      setFormData({
+    if (currentBlog && isEditing) {
+      setFormState({
         title: currentBlog.title || "",
-        content: currentBlog.content || "",
         excerpt: currentBlog.excerpt || "",
-        categories: currentBlog.categories || [],
-        tags: currentBlog.tags || [],
+        content: currentBlog.content || "",
         status: currentBlog.status || "draft",
-        isFeatured: currentBlog.isFeatured || false,
-        seoKeywords: currentBlog.seoKeywords || [],
+        categories: (currentBlog.categories || []).join(", "),
+        tags: (currentBlog.tags || []).join(", "),
+        seoKeywords: (currentBlog.seoKeywords || []).join(", "),
+        isFeatured: Boolean(currentBlog.isFeatured),
       });
-      setPreviews({
-        featuredImage: currentBlog.featuredImage || null,
-        images: currentBlog.images || [],
-      });
+      setFeaturedImagePreview(currentBlog.featuredImage || "");
     }
-  }, [currentBlog, isEdit]);
+  }, [currentBlog, isEditing]);
 
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleFileChange = (field, fileList) => {
-    const filesArray = Array.from(fileList);
-
-    if (field === "featuredImage") {
-      const file = filesArray[0];
-      setFiles((prev) => ({ ...prev, featuredImage: file }));
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setPreviews((prev) => ({ ...prev, featuredImage: e.target.result }));
-        };
-        reader.readAsDataURL(file);
-      }
-    } else if (field === "images") {
-      const newImages = filesArray.slice(0, 4);
-      setFiles((prev) => ({ ...prev, images: newImages }));
-      const newPreviews = [];
-      newImages.forEach((file) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          newPreviews.push(e.target.result);
-          if (newPreviews.length === newImages.length) {
-            setPreviews((prev) => ({ ...prev, images: newPreviews }));
-          }
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-  };
-
-  const removeFile = (field, index = null) => {
-    if (field === "featuredImage") {
-      setFiles((prev) => ({ ...prev, featuredImage: null }));
-      setPreviews((prev) => ({ ...prev, featuredImage: null }));
-    } else if (field === "images") {
-      const newFiles = [...files.images];
-      const newPreviews = [...previews.images];
-      newFiles.splice(index, 1);
-      newPreviews.splice(index, 1);
-      setFiles((prev) => ({ ...prev, images: newFiles }));
-      setPreviews((prev) => ({ ...prev, images: newPreviews }));
-    }
-  };
-
-  const addCategory = () => {
-    if (
-      categoryInput.trim() &&
-      !formData.categories.includes(categoryInput.trim())
-    ) {
-      setFormData((prev) => ({
-        ...prev,
-        categories: [...prev.categories, categoryInput.trim()],
-      }));
-      setCategoryInput("");
-    }
-  };
-
-  const removeCategory = (category) => {
-    setFormData((prev) => ({
+  const handleChange = (event) => {
+    const { name, value, type, checked } = event.target;
+    setFormState((prev) => ({
       ...prev,
-      categories: prev.categories.filter((c) => c !== category),
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
-  const addTag = () => {
-    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
-      setFormData((prev) => ({
-        ...prev,
-        tags: [...prev.tags, tagInput.trim()],
-      }));
-      setTagInput("");
-    }
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setFeaturedImageFile(file);
+    setFeaturedImagePreview(URL.createObjectURL(file));
   };
 
-  const removeTag = (tag) => {
-    setFormData((prev) => ({
-      ...prev,
-      tags: prev.tags.filter((t) => t !== tag),
-    }));
+  const handleRemoveImage = () => {
+    setFeaturedImageFile(null);
+    setFeaturedImagePreview("");
   };
 
-  const addSeoKeyword = () => {
-    if (
-      seoKeywordInput.trim() &&
-      !formData.seoKeywords.includes(seoKeywordInput.trim())
-    ) {
-      setFormData((prev) => ({
-        ...prev,
-        seoKeywords: [...prev.seoKeywords, seoKeywordInput.trim()],
-      }));
-      setSeoKeywordInput("");
-    }
-  };
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setLocalError("");
+    dispatch(clearError());
 
-  const removeSeoKeyword = (keyword) => {
-    setFormData((prev) => ({
-      ...prev,
-      seoKeywords: prev.seoKeywords.filter((k) => k !== keyword),
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!formData.title.trim() || !formData.content.trim()) {
-      alert("Title and content are required");
+    if (!formState.title.trim() || !formState.content.trim()) {
+      setLocalError("Title and content are required.");
       return;
     }
 
-    // Create FormData for multipart/form-data
-    const submitData = new FormData();
+    const payload = new FormData();
+    payload.append("title", formState.title.trim());
+    payload.append("excerpt", formState.excerpt.trim());
+    payload.append("content", formState.content.trim());
+    payload.append("status", formState.status);
+    payload.append("isFeatured", formState.isFeatured ? "true" : "false");
 
-    // Append text fields
-    submitData.append("title", formData.title);
-    submitData.append("content", formData.content);
-    if (formData.excerpt) submitData.append("excerpt", formData.excerpt);
-    submitData.append("status", formData.status);
-    submitData.append("isFeatured", formData.isFeatured);
+    parseList(formState.categories).forEach((value) =>
+      payload.append("categories", value)
+    );
+    parseList(formState.tags).forEach((value) => payload.append("tags", value));
+    parseList(formState.seoKeywords).forEach((value) =>
+      payload.append("seoKeywords", value)
+    );
 
-    // Append arrays
-    formData.categories.forEach((cat) => {
-      submitData.append("categories", cat);
-    });
-    formData.tags.forEach((tag) => {
-      submitData.append("tags", tag);
-    });
-    formData.seoKeywords.forEach((keyword) => {
-      submitData.append("seoKeywords", keyword);
-    });
-
-    // Append files
-    if (files.featuredImage) {
-      submitData.append("featuredImage", files.featuredImage);
+    if (featuredImageFile) {
+      payload.append("featuredImage", featuredImageFile);
     }
-    files.images.forEach((image) => {
-      submitData.append("images", image);
-    });
 
     try {
-      if (isEdit) {
-        await dispatch(updateBlog({ blogId, formData: submitData })).unwrap();
+      if (isEditing) {
+        await dispatch(updateBlog({ blogId, formData: payload })).unwrap();
       } else {
-        await dispatch(createBlog(submitData)).unwrap();
+        await dispatch(createBlog(payload)).unwrap();
       }
-      navigate("/admin/blogs");
+      navigate(redirectPath);
     } catch (err) {
-      console.error("Error saving blog:", err);
+      setLocalError(
+        err?.message || err || "Failed to save blog. Please try again."
+      );
     }
   };
 
-  if (isEdit && loading && !currentBlog) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-gray-400">Loading blog...</div>
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold mb-2">
-          {isEdit ? "Edit Blog Post" : "Create New Blog Post"}
-        </h1>
-        <p className="text-sm text-gray-400">
-          {isEdit
-            ? "Update your blog post details"
-            : "Fill in the details to create a new blog post"}
-        </p>
-      </div>
+    <div className="bg-gray-950 text-white min-h-screen">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="mb-6 inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </button>
 
-      {error && (
-        <div className="card mb-6 border-red-500/50 bg-red-500/10">
-          <div className="card-body text-red-300">{error}</div>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Title */}
-        <div className="card">
-          <div className="card-body">
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Title <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => handleInputChange("title", e.target.value)}
-              className="input w-full"
-              placeholder="Enter blog title"
-              required
-            />
+        <div className="rounded-3xl border border-white/10 bg-gray-900/60 p-8 shadow-2xl">
+          <div className="mb-8">
+            <p className="text-xs uppercase tracking-widest text-indigo-300">
+              {isEditing ? "Edit blog post" : "Create blog post"}
+            </p>
+            <h1 className="text-3xl font-semibold mt-2">
+              {isEditing ? "Update your blog" : "Publish a new blog"}
+            </h1>
+            <p className="text-gray-400 mt-2">
+              Craft long-form posts with featured images, tags, and SEO details.
+            </p>
           </div>
-        </div>
 
-        {/* Excerpt */}
-        <div className="card">
-          <div className="card-body">
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Excerpt
-            </label>
-            <textarea
-              value={formData.excerpt}
-              onChange={(e) => handleInputChange("excerpt", e.target.value)}
-              className="input w-full"
-              rows="3"
-              placeholder="Brief description of the blog post"
-              maxLength={500}
-            />
-            <div className="text-xs text-gray-500 mt-1">
-              {formData.excerpt.length}/500 characters
+          {(localError || error) && (
+            <div className="mb-6 rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+              {localError || error}
             </div>
-          </div>
-        </div>
+          )}
 
-        {/* Content Editor */}
-        <div className="card">
-          <div className="card-body">
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Content <span className="text-red-400">*</span>
-            </label>
-            <BlogEditor
-              value={formData.content}
-              onChange={(value) => handleInputChange("content", value)}
-            />
-          </div>
-        </div>
-
-        {/* Categories */}
-        <div className="card">
-          <div className="card-body">
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Categories
-            </label>
-            <div className="flex gap-2 mb-2">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-300">
+                Title<span className="text-red-400">*</span>
+              </label>
               <input
-                type="text"
-                value={categoryInput}
-                onChange={(e) => setCategoryInput(e.target.value)}
-                onKeyPress={(e) =>
-                  e.key === "Enter" && (e.preventDefault(), addCategory())
-                }
-                className="input flex-1"
-                placeholder="Add category"
+                name="title"
+                value={formState.title}
+                onChange={handleChange}
+                placeholder="e.g., How I built my trading playbook"
+                className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white placeholder:text-gray-500"
+                required
               />
-              <button
-                type="button"
-                onClick={addCategory}
-                className="btn btn-secondary"
-              >
-                Add
-              </button>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {formData.categories.map((cat, idx) => (
-                <span
-                  key={idx}
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded bg-blue-500/20 text-blue-300 text-sm"
-                >
-                  {cat}
-                  <button
-                    type="button"
-                    onClick={() => removeCategory(cat)}
-                    className="hover:text-red-400"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
 
-        {/* Tags */}
-        <div className="card">
-          <div className="card-body">
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Tags
-            </label>
-            <div className="flex gap-2 mb-2">
-              <input
-                type="text"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyPress={(e) =>
-                  e.key === "Enter" && (e.preventDefault(), addTag())
-                }
-                className="input flex-1"
-                placeholder="Add tag"
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-300">
+                Summary
+              </label>
+              <textarea
+                name="excerpt"
+                value={formState.excerpt}
+                onChange={handleChange}
+                rows={3}
+                placeholder="Short elevator pitch for your blog."
+                className="textarea textarea-bordered w-full border-white/10 bg-gray-950/40 text-white placeholder:text-gray-500"
               />
-              <button
-                type="button"
-                onClick={addTag}
-                className="btn btn-secondary"
-              >
-                Add
-              </button>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {formData.tags.map((tag, idx) => (
-                <span
-                  key={idx}
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded bg-green-500/20 text-green-300 text-sm"
-                >
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={() => removeTag(tag)}
-                    className="hover:text-red-400"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
 
-        {/* Status and Featured */}
-        <div className="card">
-          <div className="card-body">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-300">
+                Content<span className="text-red-400">*</span>
+              </label>
+              <textarea
+                name="content"
+                value={formState.content}
+                onChange={handleChange}
+                rows={12}
+                placeholder="Share your ideas..."
+                className="textarea textarea-bordered w-full border-white/10 bg-gray-950/40 text-white placeholder:text-gray-500"
+                required
+              />
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">
                   Status
                 </label>
                 <select
-                  value={formData.status}
-                  onChange={(e) => handleInputChange("status", e.target.value)}
-                  className="input w-full"
+                  name="status"
+                  value={formState.status}
+                  onChange={handleChange}
+                  className="select select-bordered w-full border-white/10 bg-gray-950/40 text-white"
                 >
                   <option value="draft">Draft</option>
                   <option value="published">Published</option>
                   <option value="archived">Archived</option>
                 </select>
               </div>
-              <div className="flex items-center">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.isFeatured}
-                    onChange={(e) =>
-                      handleInputChange("isFeatured", e.target.checked)
-                    }
-                    className="w-4 h-4 text-blue-600 rounded"
-                  />
-                  <span className="text-sm font-medium text-gray-300">
-                    Featured Post
-                  </span>
-                </label>
+
+              <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-gray-950/40 px-4 py-3 text-sm text-gray-300">
+                <input
+                  type="checkbox"
+                  name="isFeatured"
+                  checked={formState.isFeatured}
+                  onChange={handleChange}
+                  className="checkbox checkbox-primary"
+                />
+                Feature this blog on landing pages
+              </label>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-300">
+                Categories (comma separated)
+              </label>
+              <input
+                name="categories"
+                value={formState.categories}
+                onChange={handleChange}
+                className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white placeholder:text-gray-500"
+                placeholder="News, Strategy, Psychology"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-300">
+                Tags (comma separated)
+              </label>
+              <input
+                name="tags"
+                value={formState.tags}
+                onChange={handleChange}
+                className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white placeholder:text-gray-500"
+                placeholder="swing, forex, mindset"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-300">
+                SEO Keywords
+              </label>
+              <input
+                name="seoKeywords"
+                value={formState.seoKeywords}
+                onChange={handleChange}
+                className="input input-bordered w-full border-white/10 bg-gray-950/40 text-white placeholder:text-gray-500"
+                placeholder="pro trading journal, prop firm evaluation"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-300">
+                Featured Image
+              </label>
+              <div className="rounded-2xl border border-dashed border-white/20 bg-gray-950/30 p-4 text-sm text-gray-400">
+                {featuredImagePreview ? (
+                  <div className="relative">
+                    <img
+                      src={featuredImagePreview}
+                      alt="Preview"
+                      className="max-h-64 w-full rounded-xl object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-red-500/80 px-3 py-1 text-xs font-semibold text-white"
+                    >
+                      <XCircle className="h-3.5 w-3.5" />
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-white/10 bg-gray-900/50 px-6 py-10 text-center text-gray-400 hover:border-indigo-400/40">
+                    <Upload className="h-6 w-6" />
+                    <span>Upload cover image (JPG/PNG)</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleFileChange}
+                    />
+                  </label>
+                )}
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* SEO Keywords */}
-        <div className="card">
-          <div className="card-body">
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              SEO Keywords
-            </label>
-            <div className="flex gap-2 mb-2">
-              <input
-                type="text"
-                value={seoKeywordInput}
-                onChange={(e) => setSeoKeywordInput(e.target.value)}
-                onKeyPress={(e) =>
-                  e.key === "Enter" && (e.preventDefault(), addSeoKeyword())
-                }
-                className="input flex-1"
-                placeholder="Add SEO keyword"
-              />
+            <div className="flex flex-wrap gap-3 pt-4">
+              <button
+                type="submit"
+                className="btn btn-primary px-6"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save blog"
+                )}
+              </button>
               <button
                 type="button"
-                onClick={addSeoKeyword}
-                className="btn btn-secondary"
+                onClick={() => navigate(redirectPath)}
+                className="btn btn-ghost text-gray-300 hover:text-white"
               >
-                Add
+                Cancel
               </button>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {formData.seoKeywords.map((keyword, idx) => (
-                <span
-                  key={idx}
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded bg-purple-500/20 text-purple-300 text-sm"
-                >
-                  {keyword}
-                  <button
-                    type="button"
-                    onClick={() => removeSeoKeyword(keyword)}
-                    className="hover:text-red-400"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              ))}
-            </div>
-          </div>
+          </form>
         </div>
-
-        {/* Featured Image */}
-        <div className="card">
-          <div className="card-body">
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Featured Image
-            </label>
-            {previews.featuredImage ? (
-              <div className="relative inline-block">
-                <img
-                  src={previews.featuredImage}
-                  alt="Featured preview"
-                  className="w-48 h-48 object-cover rounded"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeFile("featuredImage")}
-                  className="absolute top-2 right-2 p-1 bg-red-500 rounded hover:bg-red-600"
-                >
-                  <X className="h-4 w-4 text-white" />
-                </button>
-              </div>
-            ) : (
-              <label className="flex flex-col items-center justify-center w-48 h-48 border-2 border-dashed border-gray-600 rounded cursor-pointer hover:border-blue-500">
-                <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                <span className="text-sm text-gray-400">Upload Image</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) =>
-                    handleFileChange("featuredImage", e.target.files)
-                  }
-                />
-              </label>
-            )}
-          </div>
-        </div>
-
-        {/* Additional Images */}
-        <div className="card">
-          <div className="card-body">
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Additional Images (Max 4)
-            </label>
-            <div className="flex flex-wrap gap-4">
-              {previews.images.map((preview, idx) => (
-                <div key={idx} className="relative">
-                  <img
-                    src={preview}
-                    alt={`Preview ${idx + 1}`}
-                    className="w-32 h-32 object-cover rounded"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeFile("images", idx)}
-                    className="absolute top-1 right-1 p-1 bg-red-500 rounded hover:bg-red-600"
-                  >
-                    <X className="h-3 w-3 text-white" />
-                  </button>
-                </div>
-              ))}
-              {previews.images.length < 4 && (
-                <label className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-gray-600 rounded cursor-pointer hover:border-blue-500">
-                  <ImageIcon className="h-6 w-6 text-gray-400 mb-1" />
-                  <span className="text-xs text-gray-400">Add Image</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    multiple
-                    onChange={(e) => handleFileChange("images", e.target.files)}
-                  />
-                </label>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Submit Buttons */}
-        <div className="flex items-center gap-4">
-          <button type="submit" disabled={loading} className="btn btn-primary">
-            {loading ? "Saving..." : isEdit ? "Update Blog" : "Create Blog"}
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate("/admin/blogs")}
-            className="btn btn-secondary"
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
+      </div>
     </div>
   );
 }
+
+export default BlogForm;
+

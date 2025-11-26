@@ -8,11 +8,13 @@ import { getUserCookie } from "../utils/cookies.js";
 import { getAssetPath } from "../utils/assets.js";
 import ImageWithFallback from "./shared/ImageWithFallback.jsx";
 
+// Merch page is hidden but kept in code for quick re-enabling
+// To re-enable: uncomment the merch item below and ensure route is active
 const navItems = [
   { to: "/", label: "Home" },
   { to: "/academy", label: "Academy" },
   { to: "/blog", label: "Blog" },
-  { to: "/merch", label: "Merch" },
+  // { to: "/merch", label: "Merch" }, // Hidden - uncomment to re-enable
   {
     to: "/reviews",
     label: "Reviews",
@@ -381,6 +383,36 @@ function Header() {
                         Dashboard
                       </button>
                     )}
+                    {user?.role === "admin" && (
+                      <Link
+                        to="/admin/blogs"
+                        onClick={() => setMenuOpen(false)}
+                        className="block px-4 py-3 text-sm text-gray-200 hover:bg-gray-800/50 transition-colors border-b border-gray-800"
+                        role="menuitem"
+                      >
+                        Manage Blogs
+                      </Link>
+                    )}
+                    {user?.role === "operator" && (
+                      <Link
+                        to="/operator/blogs"
+                        onClick={() => setMenuOpen(false)}
+                        className="block px-4 py-3 text-sm text-gray-200 hover:bg-gray-800/50 transition-colors border-b border-gray-800"
+                        role="menuitem"
+                      >
+                        My Blogs
+                      </Link>
+                    )}
+                    {(user?.role === "User" || user?.role === "user") && (
+                      <Link
+                        to="/blogs/my-blogs"
+                        onClick={() => setMenuOpen(false)}
+                        className="block px-4 py-3 text-sm text-gray-200 hover:bg-gray-800/50 transition-colors border-b border-gray-800"
+                        role="menuitem"
+                      >
+                        My Blogs
+                      </Link>
+                    )}
                     <Link
                       to="/profile"
                       onClick={() => setMenuOpen(false)}
@@ -534,6 +566,33 @@ function Header() {
                       >
                         Dashboard
                       </button>
+                    )}
+                    {user?.role === "admin" && (
+                      <Link
+                        to="/admin/blogs"
+                        onClick={() => setOpen(false)}
+                        className="px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
+                      >
+                        Manage Blogs
+                      </Link>
+                    )}
+                    {user?.role === "operator" && (
+                      <Link
+                        to="/operator/blogs"
+                        onClick={() => setOpen(false)}
+                        className="px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
+                      >
+                        My Blogs
+                      </Link>
+                    )}
+                    {(user?.role === "User" || user?.role === "user") && (
+                      <Link
+                        to="/blogs/my-blogs"
+                        onClick={() => setOpen(false)}
+                        className="px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
+                      >
+                        My Blogs
+                      </Link>
                     )}
                     <Link
                       to="/profile"

@@ -42,6 +42,22 @@ export const fetchAllBlogs = createAsyncThunk(
 
       return response.data;
     } catch (error) {
+      // Handle connection refused or network errors gracefully
+      if (
+        error.code === "ERR_NETWORK" ||
+        error.message?.includes("ERR_CONNECTION_REFUSED") ||
+        error.code === "ECONNREFUSED"
+      ) {
+        // Suppress console error for connection refused (expected when backend is down)
+        if (import.meta.env.MODE !== "production") {
+          console.info(
+            "Backend connection unavailable - this is expected if backend is not running"
+          );
+        }
+        return rejectWithValue(
+          "Backend server is not running. Please start the backend server or contact support."
+        );
+      }
       return rejectWithValue(
         error.response?.data?.message || "Failed to fetch blogs"
       );
@@ -158,6 +174,120 @@ export const permanentDeleteBlog = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Failed to permanently delete blog"
+      );
+    }
+  }
+);
+
+export const fetchUserBlogs = createAsyncThunk(
+  "blogs/fetchUserBlogs",
+  async (
+    { userId, page = 1, size = 10, search = "", status = "" } = {},
+    { rejectWithValue }
+  ) => {
+    try {
+      const token = getAuthToken();
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        params: { page, size, search, userId },
+      };
+
+      // This endpoint needs to be created in backend - for now using admin endpoint with userId filter
+      let response;
+      if (status) {
+        response = await api.post(
+          "/admin/blogs/getallblogs",
+          { status, userId },
+          config
+        );
+      } else {
+        response = await api.get("/admin/blogs/getallblogs", config);
+      }
+
+      // Filter blogs by userId on frontend if backend doesn't support it
+      let blogs = response.data.data || response.data.blogs || [];
+      if (userId) {
+        blogs = blogs.filter(
+          (blog) => blog.author?._id === userId || blog.author === userId
+        );
+      }
+
+      return { ...response.data, data: blogs, blogs };
+    } catch (error) {
+      // Handle connection refused or network errors gracefully
+      if (
+        error.code === "ERR_NETWORK" ||
+        error.message?.includes("ERR_CONNECTION_REFUSED") ||
+        error.code === "ECONNREFUSED"
+      ) {
+        // Suppress console error for connection refused (expected when backend is down)
+        if (import.meta.env.MODE !== "production") {
+          console.info(
+            "Backend connection unavailable - this is expected if backend is not running"
+          );
+        }
+        return rejectWithValue(
+          "Backend server is not running. Please start the backend server or contact support."
+        );
+      }
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch user blogs"
+      );
+    }
+  }
+);
+
+export const fetchOperatorBlogs = createAsyncThunk(
+  "blogs/fetchOperatorBlogs",
+  async (
+    { operatorId, page = 1, size = 10, search = "", status = "" } = {},
+    { rejectWithValue }
+  ) => {
+    try {
+      const token = getAuthToken();
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        params: { page, size, search },
+      };
+
+      // Fetch all blogs for operators (they can see all but only edit/delete their own)
+      let response;
+      if (status) {
+        response = await api.post(
+          "/admin/blogs/getallblogs",
+          { status },
+          config
+        );
+      } else {
+        response = await api.get("/admin/blogs/getallblogs", config);
+      }
+
+      return response.data;
+    } catch (error) {
+      // Handle connection refused or network errors gracefully
+      if (
+        error.code === "ERR_NETWORK" ||
+        error.message?.includes("ERR_CONNECTION_REFUSED") ||
+        error.code === "ECONNREFUSED"
+      ) {
+        // Suppress console error for connection refused (expected when backend is down)
+        if (import.meta.env.MODE !== "production") {
+          console.info(
+            "Backend connection unavailable - this is expected if backend is not running"
+          );
+        }
+        return rejectWithValue(
+          "Backend server is not running. Please start the backend server or contact support."
+        );
+      }
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch operator blogs"
       );
     }
   }
@@ -304,6 +434,38 @@ const blogsSlice = createSlice({
         state.blogs = state.blogs.filter(
           (b) => b._id !== action.payload.blogId
         );
+      })
+      // Fetch user blogs
+      .addCase(fetchUserBlogs.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUserBlogs.fulfilled, (state, action) => {
+        state.loading = false;
+        state.blogs = action.payload.data || action.payload.blogs || [];
+        if (action.payload.pagination) {
+          state.pagination = action.payload.pagination;
+        }
+      })
+      .addCase(fetchUserBlogs.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Fetch operator blogs
+      .addCase(fetchOperatorBlogs.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchOperatorBlogs.fulfilled, (state, action) => {
+        state.loading = false;
+        state.blogs = action.payload.data || action.payload.blogs || [];
+        if (action.payload.pagination) {
+          state.pagination = action.payload.pagination;
+        }
+      })
+      .addCase(fetchOperatorBlogs.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       })
       // Flag blog
       .addCase(flagBlog.fulfilled, (state, action) => {

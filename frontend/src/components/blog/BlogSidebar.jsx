@@ -1,7 +1,7 @@
 import React from 'react';
 import { Mail, TrendingUp, Tag } from 'lucide-react';
 
-function BlogSidebar({ latest = [], tags = [] }) {
+function BlogSidebar({ latest = [], tags = [], selectedTags = [], onTagToggle }) {
   const [email, setEmail] = React.useState('');
   return (
     <aside className="space-y-6">
@@ -19,10 +19,31 @@ function BlogSidebar({ latest = [], tags = [] }) {
         <div className="card-body">
           <div className="flex items-center gap-2 mb-3"><Tag className="h-4 w-4 text-blue-300" /><h3 className="font-semibold">Popular Tags</h3></div>
           <div className="flex flex-wrap gap-2">
-            {tags.map(t => (
-              <span key={t} className="text-xs px-2 py-1 rounded-full bg-muted border border-border text-gray-300">#{t}</span>
-            ))}
+            {tags.map(t => {
+              const isSelected = selectedTags.includes(t);
+              return (
+                <button
+                  key={t}
+                  onClick={() => onTagToggle && onTagToggle(t)}
+                  className={`text-xs px-2 py-1 rounded-full border transition-colors ${
+                    isSelected
+                      ? 'bg-blue-500/20 border-blue-500 text-blue-300'
+                      : 'bg-muted border-border text-gray-300 hover:border-blue-500/50 hover:text-blue-300'
+                  }`}
+                >
+                  #{t}
+                </button>
+              );
+            })}
           </div>
+          {selectedTags.length > 0 && (
+            <button
+              onClick={() => selectedTags.forEach(tag => onTagToggle && onTagToggle(tag))}
+              className="mt-3 text-xs text-blue-400 hover:text-blue-300 underline"
+            >
+              Clear all tags
+            </button>
+          )}
         </div>
       </div>
       <div className="card">
