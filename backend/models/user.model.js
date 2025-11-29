@@ -22,6 +22,7 @@ const UserSchema = new Schema(
             trim: true, // Removes any leading/trailing spaces
             lowercase: true // Converts to lowercase
         },
+        country: { type: String, default: "IN" },
         countryCode: { type: String, default: "+91" },
         mobileNumber: {
             type: String,

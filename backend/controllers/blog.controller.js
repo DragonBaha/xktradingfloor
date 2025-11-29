@@ -1,9 +1,24 @@
 const BlogModel = require("../models/blog.model");
 const UserModel = require("../models/user.model");
 const dayjs = require("dayjs");
+const crypto = require("crypto");
 const r2 = require("../helpers/r2.helper");
 const { sendSuccessResponse, sendErrorResponse } = require("../utils/response");
 const { getPagination, getPaginationData, escapeRegex } = require("../utils/fn");
+
+// Helper function to get unique viewer identifier
+const getViewerIdentifier = (req) => {
+    // If user is logged in, use their user ID
+    if (req.user && req.user._id) {
+        return `user_${req.user._id}`;
+    }
+    // Otherwise, use IP address + User-Agent for anonymous users
+    const ip = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for']?.split(',')[0] || 'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    // Create a hash-like identifier from IP and User-Agent
+    const identifier = crypto.createHash('md5').update(`${ip}_${userAgent}`).digest('hex');
+    return `anon_${identifier}`;
+};
 
 // Admin: Create blog post
 exports.createBlog = async (req, res) => {
@@ -55,6 +70,10 @@ exports.getAllBlogs = async (req, res) => {
 
         const query = {};
 
+        if (role !== "Admin") {
+            query.author = adminId;
+        }
+
         if (status) {
             query.status = status;
         }
@@ -87,17 +106,39 @@ exports.getAllBlogs = async (req, res) => {
 // Admin/Public: Get single blog by ID
 exports.getBlogById = async (req, res) => {
     try {
-        const { id } = req.params;
-        const blog = await BlogModel.findOne({ _id: id, isDeleted: false })
+        const { blogid } = req.params;
+        const blog = await BlogModel.findOne({ _id: blogid, isDeleted: false })
             .populate('author', 'fullName email profileImage');
 
         if (!blog) {
             return sendErrorResponse(res, "Blog post not found", 404, true, true);
         }
 
-        // Increment views
-        blog.views += 1;
-        await blog.save();
+        // Get unique identifier for this viewer
+        const viewerId = getViewerIdentifier(req);
+
+        // Check if this viewer has already viewed this blog
+        const hasViewed = blog.viewedBy && blog.viewedBy.some(
+            view => view.identifier === viewerId
+        );
+
+        // Only increment views if this is a new viewer
+        if (!hasViewed) {
+            // Initialize viewedBy array if it doesn't exist
+            if (!blog.viewedBy) {
+                blog.viewedBy = [];
+            }
+
+            // Add this viewer to the viewedBy array
+            blog.viewedBy.push({
+                identifier: viewerId,
+                viewedAt: new Date()
+            });
+
+            // Increment view count
+            blog.views += 1;
+            await blog.save();
+        }
 
         return sendSuccessResponse(res, { data: blog });
     } catch (error) {
@@ -120,9 +161,31 @@ exports.getBlogBySlug = async (req, res) => {
             return sendErrorResponse(res, "Blog post not found", 404, true, true);
         }
 
-        // Increment views
-        blog.views += 1;
-        await blog.save();
+        // Get unique identifier for this viewer
+        const viewerId = getViewerIdentifier(req);
+
+        // Check if this viewer has already viewed this blog
+        const hasViewed = blog.viewedBy && blog.viewedBy.some(
+            view => view.identifier === viewerId
+        );
+
+        // Only increment views if this is a new viewer
+        if (!hasViewed) {
+            // Initialize viewedBy array if it doesn't exist
+            if (!blog.viewedBy) {
+                blog.viewedBy = [];
+            }
+
+            // Add this viewer to the viewedBy array
+            blog.viewedBy.push({
+                identifier: viewerId,
+                viewedAt: new Date()
+            });
+
+            // Increment view count
+            blog.views += 1;
+            await blog.save();
+        }
 
         return sendSuccessResponse(res, { data: blog });
     } catch (error) {
@@ -186,10 +249,10 @@ exports.getPublishedBlogs = async (req, res) => {
 // Admin: Update blog
 exports.updateBlog = async (req, res) => {
     try {
-        const { id } = req.params;
+        const { blogid } = req.params;
         const updateData = req.body;
 
-        const blog = await BlogModel.findOne({ _id: id, isDeleted: false });
+        const blog = await BlogModel.findOne({ _id: blogid, isDeleted: false });
 
         if (!blog) {
             return sendErrorResponse(res, "Blog post not found", 404, true, true);
@@ -215,8 +278,8 @@ exports.updateBlog = async (req, res) => {
 // Admin: Delete blog (soft delete)
 exports.deleteBlog = async (req, res) => {
     try {
-        const { id } = req.params;
-        const blog = await BlogModel.findOne({ _id: id, isDeleted: false });
+        const { blogid } = req.params;
+        const blog = await BlogModel.findOne({ _id: blogid, isDeleted: false });
 
         if (!blog) {
             return sendErrorResponse(res, "Blog post not found", 404, true, true);
@@ -236,8 +299,8 @@ exports.deleteBlog = async (req, res) => {
 // Admin: Permanently delete blog
 exports.permanentDeleteBlog = async (req, res) => {
     try {
-        const { id } = req.params;
-        const blog = await BlogModel.findByIdAndDelete(id);
+        const { blogid } = req.params;
+        const blog = await BlogModel.findByIdAndDelete(blogid);
 
         if (!blog) {
             return sendErrorResponse(res, "Blog post not found", 404, true, true);

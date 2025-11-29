@@ -8,11 +8,12 @@ module.exports = {
         },
     },
     user: {
-        roles: ["Admin", "User", "SubAdmin"],
+        roles: ["Admin", "User", "SubAdmin", "operator"],
     },
     roles: {
         admin: "Admin",
         user: "User",
         subAdmin: "SubAdmin",
+        operator: "operator",
     },
 };

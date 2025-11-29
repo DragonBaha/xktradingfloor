@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const blogRoutes = require('./blog.routes.js');
+const companyRoutes = require('./company.routes.js');
 
 // Controllers
 // const reviewController = require('../../../controllers/review.controller');
@@ -17,6 +18,9 @@ const blogRoutes = require('./blog.routes.js');
 
 // Blog Routes
 router.use('/blogs', blogRoutes);
+
+// Company Routes
+router.use('/company', companyRoutes);
 
 // Review Routes
 // router.get('/reviews', reviewController.getAllReviews);
@@ -54,13 +58,5 @@ router.use('/blogs', blogRoutes);
 // router.get('/courses/:id', courseController.getCourseById);
 // router.put('/courses/:id', courseController.updateCourse);
 // router.delete('/courses/:id', courseController.deleteCourse);
-
-// Company Routes
-// router.post('/companies', companyController.createCompany);
-// router.get('/companies', companyController.getAllCompanies);
-// router.get('/companies/:id', companyController.getCompanyById);
-// router.put('/companies/:id', companyController.updateCompany);
-// router.put('/companies/:id/status', companyController.updateCompanyStatus);
-// router.delete('/companies/:id', companyController.deleteCompany);
 
 module.exports = router;

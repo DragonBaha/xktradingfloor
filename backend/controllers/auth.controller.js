@@ -4,13 +4,14 @@ const bcrypt = require('bcrypt');
 const UserModel = require("../models/user.model");
 const { sendSuccessResponse, sendErrorResponse } = require("../utils/response");
 const environment = require("../utils/environment");
+const constants = require("../utils/constants");
 const ModuleAcessModel = require("../models/permissions.model");
 const { sendHtmlEmail } = require("../helpers/email.helper");
 
 // sign up
 exports.signup = async (req, res) => {
     try {
-        const { email, password, role, fullName, mobileNumber } = req.body;
+        const { email, password, role, fullName, country, mobileNumber } = req.body;
         const existingUser = await UserModel.findOne({ email: email });
 
         if (existingUser && existingUser.isDeleted == true) {
@@ -25,10 +26,11 @@ exports.signup = async (req, res) => {
 
         if (!existingUser) {
             const user = new UserModel({
-                fullName,
+                fullName: fullName,
                 email,
-                role,
+                role: role || constants.roles.user,
                 password,
+                country: country || 'IN',
                 mobileNumber,
                 isActive: true
             });
@@ -113,6 +115,9 @@ exports.login = async (req, res) => {
 
         const permissions = await ModuleAcessModel.findOne({ userId: user._id });
         const { password: hash, ...userData } = user.toJSON();
+        // Add frontend-compatible fields
+        userData.id = userData?._id;
+        userData.name = userData?.fullName;
 
         const generateAndSendToken = () => {
             const token = jwt.sign(

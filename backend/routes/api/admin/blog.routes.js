@@ -19,9 +19,9 @@ router.post('/addblog',
     ),
     blogController.createBlog);
 router.get('/getallblogs', blogController.getAllBlogs);
-router.get('/blogs/:id', blogController.getBlogById);
-router.put('/blogs/:id', blogController.updateBlog);
-router.delete('/blogs/:id', blogController.deleteBlog);
-router.delete('/blogs/:id/permanent', blogController.permanentDeleteBlog);
+router.get('/:blogid/getblogbyid', blogController.getBlogById);
+router.put('/:blogid/updateblog', blogController.updateBlog);
+router.delete('/:blogid/deleteblog', blogController.deleteBlog);
+router.delete('/:blogid/permanentdeleteblog', blogController.permanentDeleteBlog);
 
 module.exports = router;
