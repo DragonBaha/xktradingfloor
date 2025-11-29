@@ -5,7 +5,7 @@ const CompanySchema = new Schema(
     {
         name: { type: String, required: true },
         description: String,
-        details: String, // Short description
+        details: String,
         category: { type: String, enum: ['Broker', 'PropFirm', 'Crypto'] },
         website: String,
         logo: String,
