@@ -118,14 +118,13 @@ function AdminDashboard() {
           );
           if (blogsResult.payload) {
             const payload = blogsResult.payload;
-            if (Array.isArray(payload)) {
+            // Backend returns: { success: true, data: [...], pagination: {...} }
+            if (payload.data && Array.isArray(payload.data)) {
+              realBlogs = payload.data;
+            } else if (Array.isArray(payload)) {
               realBlogs = payload;
-            } else if (payload.data) {
-              realBlogs = Array.isArray(payload.data)
-                ? payload.data
-                : payload.data.docs || [];
-            } else if (payload.docs) {
-              realBlogs = payload.docs;
+            } else {
+              realBlogs = [];
             }
           }
         } catch (error) {

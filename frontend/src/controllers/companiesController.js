@@ -71,15 +71,22 @@ export async function getAllCompanies(filters = {}) {
   }
   */
 
-  // If mock mode is OFF, return empty array (no mock data)
+  // If mock mode is OFF, try to fetch from backend
   if (!mockMode) {
-    // Try to fetch from backend if available, otherwise return empty
     try {
-      const response = await api.get("/public/companies", { params: filters });
+      // Backend expects POST for getAllCompanies with filters in body
+      const response = await api.post("/admin/company/getallcompanies", filters, {
+        params: { search: filters.search, page: filters.page, size: filters.size }
+      });
+      // Backend returns: { success: true, data: { docs: [...], totalItems, currentPage, totalPages } }
       return response;
     } catch (error) {
       // Backend not available and mock mode is OFF, return empty
       // Expected 404 if endpoint not implemented - silently return empty
+      if (error.response?.status === 401) {
+        // Unauthorized - user needs to login
+        throw error;
+      }
       return { data: [] };
     }
   }
@@ -129,33 +136,26 @@ export async function getAllCompanies(filters = {}) {
 export async function getCompanyById(companyId) {
   const mockMode = await isMockModeEnabled();
 
-  // Backend API call (ready for integration)
-  // Uncomment when backend is ready:
-  /*
-  try {
-    const response = await api.get(`/public/companies/${companyId}`);
-    if (mockMode) {
-      // If mock mode is ON, try to get from mock data as fallback
-      const companies = await loadCompanies();
-      const stored = localStorage.getItem('xktf_companies');
-      let allCompanies = stored ? JSON.parse(stored) : companies;
-      const mockCompany = allCompanies.find(c => c.id === companyId);
-      if (mockCompany) {
-        // Merge backend data with mock data if both exist
-        return { data: { ...response.data, ...mockCompany } };
+  // Try backend API first
+  if (!mockMode) {
+    try {
+      // Backend endpoint: GET /admin/company/:companyId/getcompanybyid
+      const response = await api.get(`/admin/company/${companyId}/getcompanybyid`);
+      // Backend returns: { success: true, data: {...} }
+      return response;
+    } catch (error) {
+      if (error.response?.status === 401) {
+        // Unauthorized - user needs to login
+        throw error;
+      }
+      // If backend fails and mock mode is OFF, throw error
+      if (!mockMode) {
+        throw error;
       }
     }
-    return response;
-  } catch (error) {
-    if (mockMode) {
-      console.warn('Backend unavailable, using mock data');
-    } else {
-      throw error;
-    }
   }
-  */
 
-  // Mock data implementation
+  // Mock data implementation (only if mock mode is ON or backend failed)
   const companies = await loadCompanies();
   const stored = localStorage.getItem("xktf_companies");
   let allCompanies = companies;
@@ -168,7 +168,7 @@ export async function getCompanyById(companyId) {
     }
   }
 
-  const company = allCompanies.find((c) => c.id === companyId);
+  const company = allCompanies.find((c) => c.id === companyId || c._id === companyId);
   if (!company) {
     throw new Error("Company not found");
   }
@@ -184,49 +184,44 @@ export async function createCompany(companyData) {
     throw new Error("Only admins and operators can create companies");
   }
 
-  // Backend API call (ready for integration)
-  // Uncomment when backend is ready:
-  /*
-  try {
-    const formData = new FormData();
-    Object.keys(companyData).forEach(key => {
-      if (key === 'logo' && companyData[key] instanceof File) {
-        formData.append('logo', companyData[key]);
-      } else if (key === 'images' && Array.isArray(companyData[key])) {
-        companyData[key].forEach((img, idx) => {
-          if (img instanceof File) {
-            formData.append(`images`, img);
-          }
-        });
-      } else if (key !== 'logo' && key !== 'images') {
-        formData.append(key, typeof companyData[key] === 'object' ? JSON.stringify(companyData[key]) : companyData[key]);
+  // Try backend API first
+  if (!mockMode) {
+    try {
+      const formData = new FormData();
+      Object.keys(companyData).forEach(key => {
+        if (key === 'logo' && companyData[key] instanceof File) {
+          formData.append('logo', companyData[key]);
+        } else if (key === 'images' && Array.isArray(companyData[key])) {
+          companyData[key].forEach((img, idx) => {
+            if (img instanceof File) {
+              formData.append(`images`, img);
+            }
+          });
+        } else if (key !== 'logo' && key !== 'images') {
+          formData.append(key, typeof companyData[key] === 'object' ? JSON.stringify(companyData[key]) : companyData[key]);
+        }
+      });
+      
+      // Backend endpoint: POST /admin/company/addcompany
+      const response = await api.post('/admin/company/addcompany', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      // Backend returns: { success: true, message: "...", data: {...} }
+      return response;
+    } catch (error) {
+      if (error.response?.status === 401) {
+        // Unauthorized - user needs to login
+        throw error;
       }
-    });
-    
-    const response = await api.post('/admin/companies', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-    
-    if (mockMode) {
-      // Also save to mock data if mock mode is ON
-      const companies = await loadCompanies();
-      const stored = localStorage.getItem('xktf_companies');
-      let allCompanies = stored ? JSON.parse(stored) : companies;
-      allCompanies.push(response.data);
-      await saveCompanies(allCompanies);
-    }
-    
-    return response;
-  } catch (error) {
-    if (mockMode) {
-      console.warn('Backend unavailable, using mock data');
-    } else {
-      throw error;
+      // If backend fails and mock mode is OFF, throw error
+      if (!mockMode) {
+        throw error;
+      }
     }
   }
-  */
 
-  // Mock data implementation
+  // Mock data implementation (only if mock mode is ON or backend failed)
   const companies = await loadCompanies();
   const stored = localStorage.getItem("xktf_companies");
   let allCompanies = stored ? JSON.parse(stored) : companies;
@@ -257,57 +252,50 @@ export async function updateCompany(companyId, updates) {
     throw new Error("Only operators and admins can update companies");
   }
 
-  // Backend API call (ready for integration)
-  // Uncomment when backend is ready:
-  /*
-  try {
-    const formData = new FormData();
-    Object.keys(updates).forEach(key => {
-      if (key === 'logo' && updates[key] instanceof File) {
-        formData.append('logo', updates[key]);
-      } else if (key === 'images' && Array.isArray(updates[key])) {
-        updates[key].forEach((img) => {
-          if (img instanceof File) {
-            formData.append(`images`, img);
-          }
-        });
-      } else if (key !== 'logo' && key !== 'images') {
-        formData.append(key, typeof updates[key] === 'object' ? JSON.stringify(updates[key]) : updates[key]);
+  // Try backend API first
+  if (!mockMode) {
+    try {
+      const formData = new FormData();
+      Object.keys(updates).forEach(key => {
+        if (key === 'logo' && updates[key] instanceof File) {
+          formData.append('logo', updates[key]);
+        } else if (key === 'images' && Array.isArray(updates[key])) {
+          updates[key].forEach((img) => {
+            if (img instanceof File) {
+              formData.append(`images`, img);
+            }
+          });
+        } else if (key !== 'logo' && key !== 'images') {
+          formData.append(key, typeof updates[key] === 'object' ? JSON.stringify(updates[key]) : updates[key]);
+        }
+      });
+      
+      // Note: Backend updateCompany endpoint might need to be added
+      // For now, using the pattern from backend controller
+      const response = await api.put(`/admin/company/${companyId}/updatecompany`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      // Backend returns: { success: true, message: "...", data: {...} }
+      return response;
+    } catch (error) {
+      if (error.response?.status === 401) {
+        // Unauthorized - user needs to login
+        throw error;
       }
-    });
-    
-    const response = await api.put(`/admin/companies/${companyId}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-    
-    if (mockMode) {
-      // Also update mock data if mock mode is ON
-      const companies = await loadCompanies();
-      const stored = localStorage.getItem('xktf_companies');
-      let allCompanies = stored ? JSON.parse(stored) : companies;
-      const companyIndex = allCompanies.findIndex(c => c.id === companyId);
-      if (companyIndex !== -1) {
-        allCompanies[companyIndex] = { ...allCompanies[companyIndex], ...response.data };
-        await saveCompanies(allCompanies);
+      // If backend fails and mock mode is OFF, throw error
+      if (!mockMode) {
+        throw error;
       }
-    }
-    
-    return response;
-  } catch (error) {
-    if (mockMode) {
-      console.warn('Backend unavailable, using mock data');
-    } else {
-      throw error;
     }
   }
-  */
 
-  // Mock data implementation
+  // Mock data implementation (only if mock mode is ON or backend failed)
   const companies = await loadCompanies();
   const stored = localStorage.getItem("xktf_companies");
   let allCompanies = stored ? JSON.parse(stored) : companies;
 
-  const companyIndex = allCompanies.findIndex((c) => c.id === companyId);
+  const companyIndex = allCompanies.findIndex((c) => c.id === companyId || c._id === companyId);
   if (companyIndex === -1) {
     throw new Error("Company not found");
   }
@@ -338,40 +326,33 @@ export async function deleteCompany(companyId) {
     throw new Error("Only admins can delete companies");
   }
 
-  // Backend API call (ready for integration)
-  // Uncomment when backend is ready:
-  /*
-  try {
-    const response = await api.delete(`/admin/companies/${companyId}`);
-    
-    if (mockMode) {
-      // Also delete from mock data if mock mode is ON
-      const companies = await loadCompanies();
-      const stored = localStorage.getItem('xktf_companies');
-      let allCompanies = stored ? JSON.parse(stored) : companies;
-      const companyIndex = allCompanies.findIndex(c => c.id === companyId);
-      if (companyIndex !== -1) {
-        allCompanies.splice(companyIndex, 1);
-        await saveCompanies(allCompanies);
+  // Try backend API first
+  // Note: Backend deleteCompany endpoint might need to be added to routes
+  // For now, checking if it exists
+  if (!mockMode) {
+    try {
+      // Backend endpoint: DELETE /admin/company/:companyId/deletecompany (if implemented)
+      const response = await api.delete(`/admin/company/${companyId}/deletecompany`);
+      // Backend returns: { success: true, message: "..." }
+      return response;
+    } catch (error) {
+      if (error.response?.status === 401) {
+        // Unauthorized - user needs to login
+        throw error;
+      }
+      // If backend fails and mock mode is OFF, throw error
+      if (!mockMode) {
+        throw error;
       }
     }
-    
-    return response;
-  } catch (error) {
-    if (mockMode) {
-      console.warn('Backend unavailable, using mock data');
-    } else {
-      throw error;
-    }
   }
-  */
 
-  // Mock data implementation
+  // Mock data implementation (only if mock mode is ON or backend failed)
   const companies = await loadCompanies();
   const stored = localStorage.getItem("xktf_companies");
   let allCompanies = stored ? JSON.parse(stored) : companies;
 
-  const companyIndex = allCompanies.findIndex((c) => c.id === companyId);
+  const companyIndex = allCompanies.findIndex((c) => c.id === companyId || c._id === companyId);
   if (companyIndex === -1) {
     throw new Error("Company not found");
   }

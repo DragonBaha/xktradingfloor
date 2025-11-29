@@ -97,7 +97,7 @@ export const fetchBlogById = createAsyncThunk(
         },
       };
 
-      const response = await api.get(`/admin/blogs/blogs/${blogId}`, config);
+      const response = await api.get(`/admin/blogs/${blogId}/getblogbyid`, config);
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -142,7 +142,7 @@ export const updateBlog = createAsyncThunk(
       };
 
       const response = await api.put(
-        `/admin/blogs/blogs/${blogId}`,
+        `/admin/blogs/${blogId}/updateblog`,
         formData,
         config
       );
@@ -166,7 +166,7 @@ export const deleteBlog = createAsyncThunk(
         },
       };
 
-      const response = await api.delete(`/admin/blogs/blogs/${blogId}`, config);
+      const response = await api.delete(`/admin/blogs/${blogId}/deleteblog`, config);
       return { blogId, data: response.data };
     } catch (error) {
       return rejectWithValue(
@@ -188,7 +188,7 @@ export const permanentDeleteBlog = createAsyncThunk(
       };
 
       const response = await api.delete(
-        `/admin/blogs/blogs/${blogId}/permanent`,
+        `/admin/blogs/${blogId}/permanentdeleteblog`,
         config
       );
       return { blogId, data: response.data };
@@ -329,7 +329,7 @@ export const flagBlog = createAsyncThunk(
       // This endpoint might need to be created in backend
       // For now, we'll use update endpoint
       const response = await api.put(
-        `/admin/blogs/blogs/${blogId}`,
+        `/admin/blogs/${blogId}/updateblog`,
         {
           flags: [
             {
@@ -380,9 +380,21 @@ const blogsSlice = createSlice({
       })
       .addCase(fetchAllBlogs.fulfilled, (state, action) => {
         state.loading = false;
-        state.blogs = action.payload.data || action.payload.blogs || [];
-        if (action.payload.pagination) {
-          state.pagination = action.payload.pagination;
+        // Backend returns: { success: true, data: [...], pagination: { totalItems, totalPages, currentPage, pageSize } }
+        const payload = action.payload;
+        if (payload.data && Array.isArray(payload.data)) {
+          state.blogs = payload.data;
+        } else if (Array.isArray(payload)) {
+          state.blogs = payload;
+        } else {
+          state.blogs = [];
+        }
+        if (payload.pagination) {
+          state.pagination = {
+            currentPage: payload.pagination.currentPage || 1,
+            totalPages: payload.pagination.totalPages || 1,
+            totalItems: payload.pagination.totalItems || 0,
+          };
         }
       })
       .addCase(fetchAllBlogs.rejected, (state, action) => {
@@ -396,6 +408,7 @@ const blogsSlice = createSlice({
       })
       .addCase(fetchBlogById.fulfilled, (state, action) => {
         state.loading = false;
+        // Backend returns: { success: true, data: {...} }
         state.currentBlog = action.payload.data || action.payload;
       })
       .addCase(fetchBlogById.rejected, (state, action) => {
@@ -409,7 +422,11 @@ const blogsSlice = createSlice({
       })
       .addCase(createBlog.fulfilled, (state, action) => {
         state.loading = false;
-        state.blogs.unshift(action.payload.data || action.payload);
+        // Backend returns: { success: true, message: "...", data: {...} }
+        const newBlog = action.payload.data || action.payload;
+        if (newBlog) {
+          state.blogs.unshift(newBlog);
+        }
       })
       .addCase(createBlog.rejected, (state, action) => {
         state.loading = false;
@@ -422,13 +439,16 @@ const blogsSlice = createSlice({
       })
       .addCase(updateBlog.fulfilled, (state, action) => {
         state.loading = false;
+        // Backend returns: { success: true, message: "...", data: {...} }
         const updatedBlog = action.payload.data || action.payload;
-        const index = state.blogs.findIndex((b) => b._id === updatedBlog._id);
-        if (index !== -1) {
-          state.blogs[index] = updatedBlog;
-        }
-        if (state.currentBlog?._id === updatedBlog._id) {
-          state.currentBlog = updatedBlog;
+        if (updatedBlog) {
+          const index = state.blogs.findIndex((b) => b._id === updatedBlog._id || b.id === updatedBlog._id);
+          if (index !== -1) {
+            state.blogs[index] = updatedBlog;
+          }
+          if (state.currentBlog && (state.currentBlog._id === updatedBlog._id || state.currentBlog.id === updatedBlog._id)) {
+            state.currentBlog = updatedBlog;
+          }
         }
       })
       .addCase(updateBlog.rejected, (state, action) => {
@@ -442,9 +462,14 @@ const blogsSlice = createSlice({
       })
       .addCase(deleteBlog.fulfilled, (state, action) => {
         state.loading = false;
+        // Backend returns: { success: true, message: "..." }
+        const blogId = action.payload.blogId;
         state.blogs = state.blogs.filter(
-          (b) => b._id !== action.payload.blogId
+          (b) => b._id !== blogId && b.id !== blogId
         );
+        if (state.currentBlog && (state.currentBlog._id === blogId || state.currentBlog.id === blogId)) {
+          state.currentBlog = null;
+        }
       })
       .addCase(deleteBlog.rejected, (state, action) => {
         state.loading = false;
@@ -463,9 +488,21 @@ const blogsSlice = createSlice({
       })
       .addCase(fetchUserBlogs.fulfilled, (state, action) => {
         state.loading = false;
-        state.blogs = action.payload.data || action.payload.blogs || [];
-        if (action.payload.pagination) {
-          state.pagination = action.payload.pagination;
+        // Backend returns: { success: true, data: [...], pagination: { totalItems, totalPages, currentPage, pageSize } }
+        const payload = action.payload;
+        if (payload.data && Array.isArray(payload.data)) {
+          state.blogs = payload.data;
+        } else if (Array.isArray(payload)) {
+          state.blogs = payload;
+        } else {
+          state.blogs = [];
+        }
+        if (payload.pagination) {
+          state.pagination = {
+            currentPage: payload.pagination.currentPage || 1,
+            totalPages: payload.pagination.totalPages || 1,
+            totalItems: payload.pagination.totalItems || 0,
+          };
         }
       })
       .addCase(fetchUserBlogs.rejected, (state, action) => {
@@ -479,9 +516,21 @@ const blogsSlice = createSlice({
       })
       .addCase(fetchOperatorBlogs.fulfilled, (state, action) => {
         state.loading = false;
-        state.blogs = action.payload.data || action.payload.blogs || [];
-        if (action.payload.pagination) {
-          state.pagination = action.payload.pagination;
+        // Backend returns: { success: true, data: [...], pagination: { totalItems, totalPages, currentPage, pageSize } }
+        const payload = action.payload;
+        if (payload.data && Array.isArray(payload.data)) {
+          state.blogs = payload.data;
+        } else if (Array.isArray(payload)) {
+          state.blogs = payload;
+        } else {
+          state.blogs = [];
+        }
+        if (payload.pagination) {
+          state.pagination = {
+            currentPage: payload.pagination.currentPage || 1,
+            totalPages: payload.pagination.totalPages || 1,
+            totalItems: payload.pagination.totalItems || 0,
+          };
         }
       })
       .addCase(fetchOperatorBlogs.rejected, (state, action) => {
