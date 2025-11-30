@@ -20,7 +20,21 @@ router.post('/addblog',
     blogController.createBlog);
 router.get('/getallblogs', blogController.getAllBlogs);
 router.get('/:blogid/getblogbyid', blogController.getBlogById);
-router.put('/:blogid/updateblog', blogController.updateBlog);
+router.put('/:blogid/updateblog',
+    pdfUpload.fileUpload(
+        "blogs",
+        ["pdf", "image"],
+        [{
+            name: "featuredImage",
+            maxCount: 1
+        },
+        {
+            name: "images",
+            maxCount: 4,
+        },
+        ]
+    ),
+    blogController.updateBlog);
 router.delete('/:blogid/deleteblog', blogController.deleteBlog);
 router.delete('/:blogid/permanentdeleteblog', blogController.permanentDeleteBlog);
 

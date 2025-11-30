@@ -252,6 +252,18 @@ exports.updateBlog = async (req, res) => {
         const { blogid } = req.params;
         const updateData = req.body;
 
+        let featuredImage = "";
+        if (req?.files?.featuredImage) {
+            featuredImage = req.files.featuredImage[0];
+            const pathN = featuredImage?.path;
+            const npathN = pathN.replaceAll("\\", "/");
+            featuredImage.path = npathN;
+
+            // Upload to Cloudflare R2
+            const url = await r2.uploadPublic(featuredImage?.path, `${featuredImage?.filename}`, `Blogs`);
+            updateData.featuredImage = url;
+        }
+
         const blog = await BlogModel.findOne({ _id: blogid, isDeleted: false });
 
         if (!blog) {
