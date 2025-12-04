@@ -3,6 +3,7 @@ const router = express.Router();
 const blogRoutes = require('./blog.routes.js');
 const companyRoutes = require('./company.routes.js');
 const reviewRoutes = require('./review.routes.js');
+const settingRoutes = require('./setting.routes.js');
 
 // Controllers
 // const productController = require('../../../controllers/product.controller');
@@ -24,6 +25,9 @@ router.use('/company', companyRoutes);
 
 // Review Routes
 router.use('/review', reviewRoutes);
+
+// Settings Routes
+router.use('/settings', settingRoutes);
 
 // Product Routes
 // router.post('/products', productController.createProduct);

@@ -1,20 +1,24 @@
 // Helper to check if mock mode is enabled
-// TODO: Replace with backend API call once backend is ready
 // Backend endpoint: GET /api/public/settings/mock-mode
 async function isMockModeEnabled() {
-  // Try to fetch from backend first (when backend is ready)
+  // Try to fetch from backend first
   try {
     const { default: api } = await import("./api.js");
-    const response = await api.get("/public/settings/mock-mode");
-    if (response?.data?.enabled !== undefined) {
-      return response.data.enabled;
+    const response = await api.get("/settings/mock-mode");
+    if (response?.data?.data?.enabled !== undefined) {
+      const enabled = response.data.data.enabled;
+      // Sync to localStorage for backward compatibility
+      if (typeof window !== "undefined") {
+        localStorage.setItem("xk_mock_mode", enabled.toString());
+      }
+      return enabled;
     }
   } catch (error) {
     // Backend not available or endpoint not implemented yet
-    // Fall back to localStorage for now
+    // Fall back to localStorage
   }
 
-  // Fallback to localStorage (current implementation)
+  // Fallback to localStorage
   if (typeof window !== "undefined") {
     const stored = localStorage.getItem("xk_mock_mode");
     return stored === "true";
