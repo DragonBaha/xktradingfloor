@@ -49,7 +49,7 @@ api.interceptors.response.use(
   (err) => {
     // List of endpoints that may not exist yet (expected 404s - suppress errors)
     const expected404Endpoints = [
-      "/public/settings/mock-mode",
+      "/settings/mock-mode",
       "/public/companies",
       "/admin/settings/mock-mode",
     ];

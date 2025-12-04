@@ -15,8 +15,14 @@ export const fetchMockMode = createAsyncThunk(
   "mock/fetchMockMode",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get("/public/settings/mock-mode");
-      return response.data?.enabled || false;
+      const response = await api.get("/settings/mock-mode");
+      // Backend returns: { success: true, data: { enabled: boolean } }
+      const enabled = response.data?.data?.enabled ?? false;
+      // Sync to localStorage for backward compatibility
+      if (typeof window !== "undefined") {
+        localStorage.setItem("xk_mock_mode", enabled.toString());
+      }
+      return enabled;
     } catch (error) {
       // Expected 404 if backend endpoint not implemented yet - silently fallback to localStorage
       if (error.response?.status === 404 || error.code === "ERR_NETWORK") {
@@ -42,20 +48,19 @@ export const updateMockMode = createAsyncThunk(
   async (enabled, { rejectWithValue }) => {
     try {
       const response = await api.put("/admin/settings/mock-mode", { enabled });
+      // Backend returns: { success: true, enabled: boolean, message: string }
+      const updatedEnabled = response.data?.enabled ?? enabled;
       // Also update localStorage for backward compatibility
       if (typeof window !== "undefined") {
-        localStorage.setItem(
-          "xk_mock_mode",
-          response.data?.enabled?.toString() || enabled.toString()
-        );
+        localStorage.setItem("xk_mock_mode", updatedEnabled.toString());
       }
-      return response.data?.enabled ?? enabled;
+      return updatedEnabled;
     } catch (error) {
       // If backend fails, still update localStorage (fallback)
       if (typeof window !== "undefined") {
         localStorage.setItem("xk_mock_mode", enabled.toString());
       }
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.response?.data?.message || error.message || "Failed to update mock mode");
     }
   }
 );

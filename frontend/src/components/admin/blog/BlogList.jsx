@@ -15,7 +15,7 @@ const statusStyles = {
   archived: "bg-slate-500/10 text-slate-300 border-slate-500/40",
 };
 
-const noop = () => {};
+const noop = () => { };
 
 function BlogList({
   blogs = [],
@@ -135,10 +135,9 @@ function BlogList({
 
                   <div className="flex flex-col gap-3 lg:w-64">
                     <div
-                      className={`inline-flex items-center justify-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
-                        statusStyles[blog.status] ||
+                      className={`inline-flex items-center justify-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${statusStyles[blog.status] ||
                         "border-white/10 text-gray-300"
-                      }`}
+                        }`}
                     >
                       {blog.status || "unknown"}
                     </div>

@@ -69,7 +69,7 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
       // Extract first category if multiple exist, or use first from array
       const categories = currentBlog.categories || [];
       const category = Array.isArray(categories) ? categories[0] || "" : categories || "";
-      
+
       setFormState({
         title: currentBlog.title || "",
         excerpt: currentBlog.excerpt || "",
@@ -245,9 +245,8 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
                 onChange={handleChange}
                 rows={3}
                 placeholder="Short elevator pitch for your blog (minimum 20 characters)."
-                className={`textarea textarea-bordered w-full border-white/10 bg-gray-950/40 text-white placeholder:text-gray-500 ${
-                  summaryError ? "border-red-500/50" : ""
-                }`}
+                className={`textarea textarea-bordered w-full border-white/10 bg-gray-950/40 text-white placeholder:text-gray-500 ${summaryError ? "border-red-500/50" : ""
+                  }`}
               />
               {summaryError && (
                 <p className="text-xs text-red-400">{summaryError}</p>
