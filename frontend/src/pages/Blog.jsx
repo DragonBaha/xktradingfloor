@@ -8,9 +8,9 @@ import BlogCategories from "../components/blog/BlogCategories.jsx";
 import BlogList from "../components/blog/BlogList.jsx";
 import BlogSidebar from "../components/blog/BlogSidebar.jsx";
 import BlogCard from "../components/blog/BlogCard.jsx";
-import { getAllBlogs } from "../controllers/blogsController.js";
 import { getUserCookie } from "../utils/cookies.js";
 import { updateMockMode, fetchMockMode } from "../redux/slices/mockSlice.js";
+import { fetchPublishedBlogs } from "../redux/slices/blogsSlice.js";
 
 function Blog() {
   const [all, setAll] = React.useState([]);
@@ -27,6 +27,7 @@ function Blog() {
   const userRole =
     typeof user?.role === "string" ? user.role.toLowerCase() : null;
   const isAdmin = userRole === "admin";
+  const { blogs: publishedBlogs, loading: blogsLoading } = useSelector((state) => state.blogs);
 
   // Fetch and sync mock mode from backend (for global sync across all users)
   React.useEffect(() => {
@@ -43,11 +44,99 @@ function Blog() {
     };
   }, [dispatch]);
 
+  // Fetch blogs based on mock mode
   React.useEffect(() => {
-    (async () => setAll(await getAllBlogs()))();
-  }, [mockMode]); // Reload when mock mode changes
+    const loadBlogs = async () => {
+      if (mockMode) {
+        // Mock mode ON: Load mock data ONLY - no API calls
+        try {
+          const mockBlogsModule = await import("../models/blogsData.js");
+          const mockBlogs = mockBlogsModule.blogs || [];
+          setAll(mockBlogs);
+        } catch (err) {
+          console.error("Failed to load mock blogs:", err);
+          setAll([]);
+        }
+      } else {
+        // Mock mode OFF: Fetch published blogs from backend
+        dispatch(fetchPublishedBlogs({ limit: 1000 }));
+      }
+    };
 
-  const categories = Array.from(new Set(all.map((p) => p.category)));
+    loadBlogs();
+    
+    // Refresh blogs every 30 seconds when not in mock mode (to catch new publications)
+    if (!mockMode) {
+      const refreshInterval = setInterval(() => {
+        dispatch(fetchPublishedBlogs({ limit: 1000 }));
+      }, 30000);
+      
+      return () => clearInterval(refreshInterval);
+    }
+    
+    // Cleanup: if switching to mock mode, clear any pending API calls
+    return () => {
+      // No cleanup needed - React will handle unmounting
+    };
+  }, [dispatch, mockMode]);
+
+  // Update local state when published blogs are fetched (only when mock mode is OFF)
+  React.useEffect(() => {
+    // Only update if mock mode is OFF and we have published blogs
+    if (mockMode) {
+      // Don't update from API when mock mode is ON
+      return;
+    }
+    
+    if (publishedBlogs && Array.isArray(publishedBlogs) && publishedBlogs.length > 0) {
+      // Transform backend blog format to match frontend format
+      // IMPORTANT: Filter out unpublished and deleted blogs
+      const transformedBlogs = publishedBlogs
+        .filter((blog) => {
+          // Only show published blogs that are not deleted
+          return blog.status === "published" && !blog.isDeleted;
+        })
+        .map((blog) => {
+          const publishedDate = blog.publishedAt || blog.createdAt;
+          const dateObj = publishedDate ? new Date(publishedDate) : new Date();
+          const formattedDate = dateObj.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          });
+          
+          // Calculate read time (rough estimate: 200 words per minute)
+          const wordCount = blog.content ? blog.content.replace(/<[^>]*>/g, "").split(/\s+/).length : 0;
+          const readTime = Math.max(1, Math.ceil(wordCount / 200));
+
+          return {
+            id: blog._id || blog.id,
+            title: blog.title,
+            excerpt: blog.excerpt,
+            content: blog.content,
+            category: Array.isArray(blog.categories) ? blog.categories[0] : blog.categories || blog.category || "",
+            tags: blog.tags || [],
+            author: blog.author?.fullName || blog.author?.name || blog.author?.email || "Unknown",
+            authorId: blog.author?._id || blog.author,
+            authorInfo: blog.author, // Full author object for BlogAuthorInfo component
+            image: blog.featuredImage,
+            featuredImage: blog.featuredImage,
+            isFeatured: blog.isFeatured || false,
+            createdAt: blog.createdAt,
+            publishedAt: publishedDate,
+            date: formattedDate,
+            readTime: `${readTime} min read`,
+            status: blog.status,
+          };
+        });
+      setAll(transformedBlogs);
+    } else if (!mockMode && !blogsLoading && (!publishedBlogs || publishedBlogs.length === 0)) {
+      // If mock mode is OFF, API call completed, but no blogs returned - set empty array
+      setAll([]);
+    }
+  }, [publishedBlogs, mockMode, blogsLoading]);
+
+  const categories = Array.from(new Set(all.map((p) => p.category).filter(Boolean)));
   const tags = Array.from(new Set(all.flatMap((p) => p.tags || [])));
 
   // Get featured blog (advertisement) - first blog marked as featured or first blog
@@ -59,8 +148,8 @@ function Blog() {
     const matchQuery =
       q === ""
         ? true
-        : p.title.toLowerCase().includes(q) ||
-          p.author.toLowerCase().includes(q);
+        : p.title?.toLowerCase().includes(q) ||
+          (typeof p.author === "string" && p.author.toLowerCase().includes(q));
     const matchTags =
       selectedTags.length === 0
         ? true
@@ -186,7 +275,13 @@ function Blog() {
               </button>
             </div>
           )}
-          <BlogList posts={current} onOpen={(p) => navigate(`/blog/${p.id}`)} />
+          {!mockMode && blogsLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-gray-400">Loading blogs...</div>
+            </div>
+          ) : (
+            <BlogList posts={current} onOpen={(p) => navigate(`/blog/${p.id}`)} />
+          )}
           <div className="flex items-center justify-center gap-2 pt-2">
             <button
               className="btn btn-secondary rounded-full"

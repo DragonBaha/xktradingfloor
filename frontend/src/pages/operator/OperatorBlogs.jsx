@@ -8,6 +8,7 @@ import {
   fetchOperatorBlogs,
   deleteBlog,
   flagBlog,
+  unflagBlog,
   clearError,
 } from "../../redux/slices/blogsSlice.js";
 import { getUserCookie } from "../../utils/cookies.js";
@@ -35,6 +36,19 @@ function OperatorBlogsContent() {
     }
   }, [dispatch, user?.id, searchQuery, statusFilter]);
 
+  // Filter blogs: show own blogs + normal user blogs (for flagging)
+  const filteredBlogs = React.useMemo(() => {
+    if (!blogs || !Array.isArray(blogs)) return [];
+    return blogs.filter((blog) => {
+      const authorId = blog.author?._id || blog.author;
+      const isOwnBlog = authorId === user?.id;
+      const authorRole = blog.author?.role?.toLowerCase();
+      const isNormalUserBlog = authorRole === "user" || authorRole === undefined;
+      // Show own blogs OR normal user blogs (for flagging)
+      return isOwnBlog || isNormalUserBlog;
+    });
+  }, [blogs, user?.id]);
+
   React.useEffect(() => {
     return () => {
       dispatch(clearError());
@@ -47,11 +61,12 @@ function OperatorBlogsContent() {
 
   const handleDelete = async (blogId) => {
     // Operators can only delete their own blogs
-    const blog = blogs.find((b) => b._id === blogId);
-    const isOwner = blog?.author?._id === user?.id || blog?.author === user?.id;
+    const blog = blogs.find((b) => b._id === blogId || b.id === blogId);
+    const authorId = blog?.author?._id || blog?.author;
+    const isOwner = authorId === user?.id;
 
     if (!isOwner) {
-      alert("You can only delete your own blogs");
+      alert("You can only delete your own blogs. You can flag other users' blogs if they violate guidelines.");
       return;
     }
 
@@ -78,9 +93,22 @@ function OperatorBlogsContent() {
     }
   };
 
-  const handleFlag = async (blogId, flagType) => {
+  const handleFlag = async (blogId) => {
+    // For operators, we'll use a simple flag with default reason
+    // In a real scenario, you might want to show a modal here too
+    const flagType = "inappropriate"; // Default flag type
+    if (!window.confirm("Are you sure you want to flag this blog?")) {
+      return;
+    }
     try {
-      await dispatch(flagBlog({ blogId, flagType })).unwrap();
+      await dispatch(
+        flagBlog({
+          blogId,
+          flagType,
+          reason: flagType,
+          description: "Flagged by operator",
+        })
+      ).unwrap();
       // Refresh the list
       if (user?.id) {
         dispatch(
@@ -92,7 +120,28 @@ function OperatorBlogsContent() {
         );
       }
     } catch (err) {
-      alert("Failed to flag blog: " + err);
+      alert("Failed to flag blog: " + (err || "Unknown error"));
+    }
+  };
+
+  const handleUnflag = async (blogId) => {
+    if (!window.confirm("Are you sure you want to unflag this blog?")) {
+      return;
+    }
+    try {
+      await dispatch(unflagBlog(blogId)).unwrap();
+      // Refresh the list
+      if (user?.id) {
+        dispatch(
+          fetchOperatorBlogs({
+            operatorId: user.id,
+            search: searchQuery,
+            status: statusFilter,
+          })
+        );
+      }
+    } catch (err) {
+      alert("Failed to unflag blog: " + (err || "Unknown error"));
     }
   };
 
@@ -128,17 +177,19 @@ function OperatorBlogsContent() {
 
         {/* Blog List */}
         <BlogList
-          blogs={blogs}
+          blogs={filteredBlogs}
           loading={loading}
           onEdit={handleEdit}
           onDelete={handleDelete}
           onFlag={handleFlag}
+          onUnflag={handleUnflag}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           statusFilter={statusFilter}
           onStatusFilterChange={setStatusFilter}
           canDelete
           canFlag
+          canUnflag
         />
       </div>
     </div>

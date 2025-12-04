@@ -190,9 +190,9 @@ function BlogList({
                         </button>
                       )}
                     </div>
-                    {(canFlag || (canUnflag && flags.length > 0)) && (
+                    {(canFlag || (canUnflag && (flags.length > 0 || blog.isFlagged))) && (
                       <div className="flex flex-wrap gap-2">
-                        {canFlag && (
+                        {canFlag && !blog.isFlagged && (
                           <button
                             type="button"
                             onClick={() => onFlag(blog._id || blog.id)}
@@ -202,10 +202,10 @@ function BlogList({
                             Flag
                           </button>
                         )}
-                        {canUnflag && flags.length > 0 && (
+                        {canUnflag && (flags.length > 0 || blog.isFlagged) && (
                           <button
                             type="button"
-                            onClick={() => onUnflag(blog._id || blog.id, flags[0])}
+                            onClick={() => onUnflag(blog._id || blog.id)}
                             className="btn btn-xs btn-outline border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10"
                           >
                             <ShieldCheck className="h-4 w-4" />

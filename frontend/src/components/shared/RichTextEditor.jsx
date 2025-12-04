@@ -29,21 +29,11 @@ const formats = [
 ];
 
 function RichTextEditor({ value, onChange, placeholder = "Start typing..." }) {
+  const quillRef = React.useRef(null);
+
   return (
-    <div className="rich-text-editor">
-      <ReactQuill
-        theme="snow"
-        value={value || ""}
-        onChange={onChange}
-        modules={modules}
-        formats={formats}
-        placeholder={placeholder}
-        className="bg-gray-950/40 text-white"
-        style={{
-          minHeight: "200px",
-        }}
-      />
-      <style jsx global>{`
+    <>
+      <style>{`
         .rich-text-editor .ql-container {
           font-family: inherit;
           font-size: 14px;
@@ -91,7 +81,22 @@ function RichTextEditor({ value, onChange, placeholder = "Start typing..." }) {
           background: rgba(255, 255, 255, 0.1);
         }
       `}</style>
-    </div>
+      <div className="rich-text-editor">
+        <ReactQuill
+          ref={quillRef}
+          theme="snow"
+          value={value || ""}
+          onChange={onChange}
+          modules={modules}
+          formats={formats}
+          placeholder={placeholder}
+          className="bg-gray-950/40 text-white"
+          style={{
+            minHeight: "200px",
+          }}
+        />
+      </div>
+    </>
   );
 }
 

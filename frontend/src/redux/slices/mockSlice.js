@@ -24,17 +24,12 @@ export const fetchMockMode = createAsyncThunk(
       return enabled;
     } catch (error) {
       // Expected 404 if backend endpoint not implemented yet - silently fallback to localStorage
-      if (error.response?.status === 404 || error.code === "ERR_NETWORK") {
-        if (typeof window !== "undefined") {
-          const stored = localStorage.getItem("xk_mock_mode");
-          return stored === "true";
-        }
-        return false;
-      }
-      // For other errors, still fallback but don't reject
+      // This endpoint doesn't exist in backend, so always fallback to localStorage
       if (typeof window !== "undefined") {
         const stored = localStorage.getItem("xk_mock_mode");
-        return stored === "true";
+        const enabled = stored === "true";
+        // Don't reject - just return the localStorage value
+        return enabled;
       }
       return false;
     }

@@ -52,6 +52,7 @@ api.interceptors.response.use(
       "/public/settings/mock-mode",
       "/public/companies",
       "/admin/settings/mock-mode",
+      "/public/blogs", // Public blogs endpoint doesn't exist - use admin endpoint instead
     ];
 
     const isExpected404 =
@@ -63,6 +64,7 @@ api.interceptors.response.use(
       );
 
     // Suppress console errors for connection refused (expected when backend is down)
+    // and for expected 404s (endpoints not implemented yet)
     if (
       err.code === "ERR_NETWORK" ||
       err.message?.includes("ERR_CONNECTION_REFUSED") ||
@@ -73,10 +75,11 @@ api.interceptors.response.use(
       // The error will still be passed to the component for fallback handling
       // Silently handle - no console spam
     } else {
-      // Log other errors normally in development
+      // Log other errors normally in development (but not 401 auth errors)
       if (
         import.meta.env.MODE === "development" &&
-        err.response?.status !== 401
+        err.response?.status !== 401 &&
+        err.response?.status !== 404 // Don't log 404s unless they're unexpected
       ) {
         console.error("API Error:", err);
       }

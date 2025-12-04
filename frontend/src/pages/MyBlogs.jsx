@@ -7,6 +7,7 @@ import { BlogList } from "../components/admin/blog/index.js";
 import {
   fetchUserBlogs,
   deleteBlog,
+  updateBlog,
   clearError,
 } from "../redux/slices/blogsSlice.js";
 import { getUserCookie } from "../utils/cookies.js";
@@ -65,8 +66,54 @@ function MyBlogsContent() {
           );
         }
       } catch (err) {
-        alert("Failed to delete blog: " + err);
+        alert("Failed to delete blog: " + (err || "Unknown error"));
       }
+    }
+  };
+
+  const handlePublish = async (blogId) => {
+    if (!window.confirm("Are you sure you want to publish this blog? It will be visible to all users.")) {
+      return;
+    }
+    try {
+      const formData = new FormData();
+      formData.append("status", "published");
+      await dispatch(updateBlog({ blogId, formData })).unwrap();
+      // Refresh the list
+      if (user?.id) {
+        dispatch(
+          fetchUserBlogs({
+            userId: user.id,
+            search: searchQuery,
+            status: statusFilter,
+          })
+        );
+      }
+    } catch (err) {
+      alert("Failed to publish blog: " + (err || "Unknown error"));
+    }
+  };
+
+  const handleUnpublish = async (blogId) => {
+    if (!window.confirm("Are you sure you want to unpublish this blog? It will no longer be visible to users.")) {
+      return;
+    }
+    try {
+      const formData = new FormData();
+      formData.append("status", "draft");
+      await dispatch(updateBlog({ blogId, formData })).unwrap();
+      // Refresh the list
+      if (user?.id) {
+        dispatch(
+          fetchUserBlogs({
+            userId: user.id,
+            search: searchQuery,
+            status: statusFilter,
+          })
+        );
+      }
+    } catch (err) {
+      alert("Failed to unpublish blog: " + (err || "Unknown error"));
     }
   };
 
@@ -158,6 +205,8 @@ function MyBlogsContent() {
           loading={loading}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onPublish={handlePublish}
+          onUnpublish={handleUnpublish}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           statusFilter={statusFilter}

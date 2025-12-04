@@ -2,6 +2,9 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchBlogById, fetchPublishedBlogs } from '../redux/slices/blogsSlice.js';
+import { fetchMockMode } from '../redux/slices/mockSlice.js';
 import { getAllBlogs, getBlogById } from '../controllers/blogsController.js';
 import BlogAuthorInfo from '../components/blog/BlogAuthorInfo.jsx';
 import ImageWithFallback from '../components/shared/ImageWithFallback.jsx';
@@ -9,18 +12,98 @@ import ImageWithFallback from '../components/shared/ImageWithFallback.jsx';
 function BlogPost() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { currentBlog, blogs: publishedBlogs, loading } = useSelector((state) => state.blogs);
+  const mockMode = useSelector((state) => state.mock.enabled);
   const [post, setPost] = React.useState(null);
   const [all, setAll] = React.useState([]);
 
   React.useEffect(() => {
-    (async () => {
-      setPost(await getBlogById(id));
-      setAll(await getAllBlogs());
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    })();
-  }, [id]);
+    dispatch(fetchMockMode());
+  }, [dispatch]);
 
-  if (!post) return <div className="max-w-3xl mx-auto px-4 py-10">Post not found.</div>;
+  React.useEffect(() => {
+    const loadBlog = async () => {
+      if (mockMode) {
+        // Load from mock data
+        const mockBlog = await getBlogById(id);
+        if (mockBlog) {
+          setPost(mockBlog);
+        }
+        const mockBlogs = await getAllBlogs();
+        setAll(mockBlogs);
+      } else {
+        // Load from backend
+        dispatch(fetchBlogById(id));
+        dispatch(fetchPublishedBlogs({ limit: 1000 }));
+      }
+    };
+    loadBlog();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [dispatch, id, mockMode]);
+
+  // Transform currentBlog to post format (only when not using mock mode)
+  React.useEffect(() => {
+    if (!mockMode && currentBlog) {
+      const publishedDate = currentBlog.publishedAt || currentBlog.createdAt;
+      const dateObj = publishedDate ? new Date(publishedDate) : new Date();
+      const formattedDate = dateObj.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+      
+      const wordCount = currentBlog.content ? currentBlog.content.replace(/<[^>]*>/g, "").split(/\s+/).length : 0;
+      const readTime = Math.max(1, Math.ceil(wordCount / 200));
+
+      setPost({
+        id: currentBlog._id || currentBlog.id,
+        title: currentBlog.title,
+        excerpt: currentBlog.excerpt,
+        content: currentBlog.content,
+        category: Array.isArray(currentBlog.categories) ? currentBlog.categories[0] : currentBlog.categories || currentBlog.category || "",
+        tags: currentBlog.tags || [],
+        author: currentBlog.author?.fullName || currentBlog.author?.name || currentBlog.author?.email || "Unknown",
+        authorInfo: currentBlog.author,
+        image: currentBlog.featuredImage,
+        date: formattedDate,
+        readTime: `${readTime} min read`,
+      });
+    }
+  }, [currentBlog, mockMode]);
+
+  // Transform published blogs for related posts (only when not using mock mode)
+  React.useEffect(() => {
+    if (!mockMode && publishedBlogs && Array.isArray(publishedBlogs)) {
+      const transformed = publishedBlogs.map((blog) => {
+        const publishedDate = blog.publishedAt || blog.createdAt;
+        const dateObj = publishedDate ? new Date(publishedDate) : new Date();
+        const formattedDate = dateObj.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        });
+
+        return {
+          id: blog._id || blog.id,
+          title: blog.title,
+          excerpt: blog.excerpt,
+          category: Array.isArray(blog.categories) ? blog.categories[0] : blog.categories || blog.category || "",
+          tags: blog.tags || [],
+          date: formattedDate,
+        };
+      });
+      setAll(transformed);
+    }
+  }, [publishedBlogs, mockMode]);
+
+  if (!mockMode && loading && !post) {
+    return <div className="max-w-3xl mx-auto px-4 py-10">Loading...</div>;
+  }
+
+  if (!post) {
+    return <div className="max-w-3xl mx-auto px-4 py-10">Post not found.</div>;
+  }
 
   const related = all.filter(p => p.id !== post.id && (p.category === post.category || p.tags?.some(t => post.tags?.includes(t)))).slice(0,3);
 
@@ -33,7 +116,15 @@ function BlogPost() {
       <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} className="bg-gray-900/50 border-b border-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="h-64 w-full rounded-xl overflow-hidden bg-muted mb-6">
-            {post.image && <ImageWithFallback src={post.image} fallback="/assets/placeholder.jpg" alt={post.title} className="h-full w-full object-cover" />}
+            {post.image && (
+              <ImageWithFallback 
+                src={post.image} 
+                fallback="/assets/placeholder.jpg" 
+                alt={post.title} 
+                className="h-full w-full object-cover"
+                useDynamicFallback={true}
+              />
+            )}
           </div>
           <h1 className="text-3xl font-semibold">{post.title}</h1>
           <div className="text-sm text-gray-400 mt-1">{post.author} • {post.date} • {post.readTime}</div>

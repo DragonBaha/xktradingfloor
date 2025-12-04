@@ -7,7 +7,9 @@ import { BlogList } from "../../components/admin/blog/index.js";
 import {
   fetchAllBlogs,
   deleteBlog,
+  permanentDeleteBlog,
   flagBlog,
+  unflagBlog,
   updateBlog,
   clearError,
 } from "../../redux/slices/blogsSlice.js";
@@ -25,12 +27,35 @@ function AdminBlogsContent() {
 
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
+  const [viewFilter, setViewFilter] = React.useState("all"); // "all", "flagged", "own"
   const [deleteModal, setDeleteModal] = React.useState({ isOpen: false, blogId: null });
   const [flagModal, setFlagModal] = React.useState({ isOpen: false, blogId: null });
 
   React.useEffect(() => {
     dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
   }, [dispatch, searchQuery, statusFilter]);
+
+  // Filter blogs based on view filter
+  const filteredBlogs = React.useMemo(() => {
+    if (!blogs || !Array.isArray(blogs)) return [];
+    
+    switch (viewFilter) {
+      case "flagged":
+        return blogs.filter((blog) => {
+          // Check both flags array and isFlagged field
+          const flags = Array.isArray(blog.flags) ? blog.flags : [];
+          return flags.length > 0 || blog.isFlagged === true;
+        });
+      case "own":
+        return blogs.filter((blog) => {
+          const authorId = blog.author?._id || blog.author;
+          return authorId === user?.id;
+        });
+      case "all":
+      default:
+        return blogs;
+    }
+  }, [blogs, viewFilter, user?.id]);
 
   React.useEffect(() => {
     return () => {
@@ -49,11 +74,19 @@ function AdminBlogsContent() {
   const confirmDelete = async () => {
     if (!deleteModal.blogId) return;
     try {
-      await dispatch(deleteBlog(deleteModal.blogId)).unwrap();
+      // Use permanent delete to completely remove the blog
+      await dispatch(permanentDeleteBlog(deleteModal.blogId)).unwrap();
+      // Refresh the list after deletion
       dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
+      setDeleteModal({ isOpen: false, blogId: null });
     } catch (err) {
-      // Error will be shown via Redux state
+      // Extract error message from response
+      const errorMessage = 
+        err?.response?.data?.message || 
+        err?.message || 
+        (typeof err === "string" ? err : "Unknown error");
       console.error("Failed to delete blog:", err);
+      alert(`Failed to delete blog: ${errorMessage}`);
     }
   };
 
@@ -64,49 +97,87 @@ function AdminBlogsContent() {
   const confirmFlag = async (reason, description) => {
     if (!flagModal.blogId) return;
     try {
-      // Combine reason and description for backend
-      const flagData = {
-        reason,
-        description: description || "",
-      };
-      await dispatch(flagBlog({ blogId: flagModal.blogId, flagType: reason, ...flagData })).unwrap();
+      await dispatch(
+        flagBlog({
+          blogId: flagModal.blogId,
+          flagType: reason,
+          reason: reason,
+          description: description || "",
+        })
+      ).unwrap();
       // Refresh the list
       dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
+      setFlagModal({ isOpen: false, blogId: null });
     } catch (err) {
+      // Extract error message from response
+      const errorMessage = 
+        err?.response?.data?.message || 
+        err?.message || 
+        (typeof err === "string" ? err : "An error occurred. Please contact support or try again later.");
       console.error("Failed to flag blog:", err);
+      alert(`Failed to flag blog: ${errorMessage}`);
     }
   };
 
-  const handleUnflag = async (blogId, flagType) => {
-    // For now, we'll need to update the blog to remove the flag
-    // This might need a backend endpoint
+  const handleUnflag = async (blogId) => {
+    if (!window.confirm("Are you sure you want to unflag this blog?")) {
+      return;
+    }
     try {
-      // Refresh the list - the backend should handle unflagging
+      await dispatch(unflagBlog(blogId)).unwrap();
+      // Refresh the list
       dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
     } catch (err) {
+      // Extract error message from response
+      const errorMessage = 
+        err?.response?.data?.message || 
+        err?.message || 
+        (typeof err === "string" ? err : "Unknown error");
       console.error("Failed to unflag blog:", err);
+      alert(`Failed to unflag blog: ${errorMessage}`);
     }
   };
 
   const handlePublish = async (blogId) => {
+    if (!window.confirm("Are you sure you want to publish this blog? It will be visible to all users.")) {
+      return;
+    }
     try {
       const formData = new FormData();
       formData.append("status", "published");
       await dispatch(updateBlog({ blogId, formData })).unwrap();
       dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
     } catch (err) {
+      // Extract error message from response
+      const errorMessage = 
+        err?.response?.data?.message || 
+        err?.message || 
+        (typeof err === "string" ? err : "Unknown error");
       console.error("Failed to publish blog:", err);
+      alert(`Failed to publish blog: ${errorMessage}`);
     }
   };
 
   const handleUnpublish = async (blogId) => {
+    if (!window.confirm("Are you sure you want to unpublish this blog? It will no longer be visible to users.")) {
+      return;
+    }
     try {
       const formData = new FormData();
       formData.append("status", "draft");
       await dispatch(updateBlog({ blogId, formData })).unwrap();
+      // Refresh admin list
       dispatch(fetchAllBlogs({ search: searchQuery, status: statusFilter }));
+      // Note: The /blog page will automatically refresh via its polling mechanism
+      // or users can manually refresh to see the change
     } catch (err) {
+      // Extract error message from response
+      const errorMessage = 
+        err?.response?.data?.message || 
+        err?.message || 
+        (typeof err === "string" ? err : "Unknown error");
       console.error("Failed to unpublish blog:", err);
+      alert(`Failed to unpublish blog: ${errorMessage}`);
     }
   };
 
@@ -125,13 +196,24 @@ function AdminBlogsContent() {
               Create, edit, and manage blog posts
             </p>
           </div>
-          <button
-            onClick={() => navigate("/admin/blogs/create")}
-            className="btn btn-primary flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Create New Blog
-          </button>
+          <div className="flex items-center gap-3">
+            <select
+              value={viewFilter}
+              onChange={(e) => setViewFilter(e.target.value)}
+              className="select select-bordered bg-gray-900/70 border-white/10 text-white"
+            >
+              <option value="all">All Blogs</option>
+              <option value="flagged">Flagged Blogs</option>
+              <option value="own">My Blogs</option>
+            </select>
+            <button
+              onClick={() => navigate("/admin/blogs/create")}
+              className="btn btn-primary flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Create New Blog
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -142,7 +224,7 @@ function AdminBlogsContent() {
 
         {/* Blog List */}
         <BlogList
-          blogs={blogs}
+          blogs={filteredBlogs}
           loading={loading}
           onEdit={handleEdit}
           onDelete={handleDelete}

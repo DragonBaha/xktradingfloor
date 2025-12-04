@@ -1,7 +1,7 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Loader2, Upload, XCircle } from "lucide-react";
+import { ArrowLeft, Loader2, Upload, XCircle, Save, FileText } from "lucide-react";
 import {
   fetchBlogById,
   createBlog,
@@ -11,6 +11,7 @@ import {
 } from "../../../redux/slices/blogsSlice.js";
 import RichTextEditor from "../../shared/RichTextEditor.jsx";
 import ChipInput from "../../shared/ChipInput.jsx";
+import { getUserCookie } from "../../../utils/cookies.js";
 
 const BLOG_CATEGORIES = [
   "Trading",
@@ -36,12 +37,22 @@ const defaultState = {
   isFeatured: false,
 };
 
+// Auto-save key generator
+const getAutoSaveKey = (blogId, userId) => {
+  if (blogId) {
+    return `blog_draft_${blogId}`;
+  }
+  return `blog_draft_new_${userId || "anonymous"}`;
+};
+
 function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const params = useParams();
   const blogId = blogIdProp ?? params.blogId;
   const isEditing = Boolean(blogId);
+  const user = getUserCookie();
+  const userId = user?.id;
 
   const { currentBlog, loading, error } = useSelector((state) => state.blogs);
 
@@ -50,6 +61,26 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
   const [featuredImagePreview, setFeaturedImagePreview] = React.useState("");
   const [localError, setLocalError] = React.useState("");
   const [summaryError, setSummaryError] = React.useState("");
+  const [lastSaved, setLastSaved] = React.useState(null);
+  const [isAutoSaving, setIsAutoSaving] = React.useState(false);
+  const autoSaveKey = React.useMemo(() => getAutoSaveKey(blogId, userId), [blogId, userId]);
+
+  // Load draft from localStorage on mount (only for new blogs)
+  React.useEffect(() => {
+    if (!isEditing && typeof window !== "undefined") {
+      try {
+        const savedDraft = localStorage.getItem(autoSaveKey);
+        if (savedDraft) {
+          const draft = JSON.parse(savedDraft);
+          setFormState(draft.formState || defaultState);
+          setFeaturedImagePreview(draft.featuredImagePreview || "");
+          setLastSaved(draft.lastSaved ? new Date(draft.lastSaved) : null);
+        }
+      } catch (err) {
+        console.error("Failed to load draft:", err);
+      }
+    }
+  }, [isEditing, autoSaveKey]);
 
   React.useEffect(() => {
     if (isEditing) {
@@ -81,8 +112,62 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
         isFeatured: Boolean(currentBlog.isFeatured),
       });
       setFeaturedImagePreview(currentBlog.featuredImage || "");
+      // Clear auto-save when loading existing blog
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(autoSaveKey);
+      }
     }
-  }, [currentBlog, isEditing]);
+  }, [currentBlog, isEditing, autoSaveKey]);
+
+  // Auto-save functionality - saves to localStorage every 30 seconds
+  React.useEffect(() => {
+    if (isEditing) return; // Don't auto-save when editing existing blog
+
+    const autoSaveInterval = setInterval(() => {
+      // Only save if there's meaningful content
+      if (formState.title.trim() || formState.content.trim() || formState.excerpt.trim()) {
+        setIsAutoSaving(true);
+        try {
+          const draftData = {
+            formState,
+            featuredImagePreview,
+            lastSaved: new Date().toISOString(),
+          };
+          localStorage.setItem(autoSaveKey, JSON.stringify(draftData));
+          setLastSaved(new Date());
+        } catch (err) {
+          console.error("Auto-save failed:", err);
+        } finally {
+          setIsAutoSaving(false);
+        }
+      }
+    }, 30000); // Auto-save every 30 seconds
+
+    return () => clearInterval(autoSaveInterval);
+  }, [formState, featuredImagePreview, isEditing, autoSaveKey]);
+
+  // Also save on form changes (debounced)
+  React.useEffect(() => {
+    if (isEditing) return;
+    
+    const timeoutId = setTimeout(() => {
+      if (formState.title.trim() || formState.content.trim() || formState.excerpt.trim()) {
+        try {
+          const draftData = {
+            formState,
+            featuredImagePreview,
+            lastSaved: new Date().toISOString(),
+          };
+          localStorage.setItem(autoSaveKey, JSON.stringify(draftData));
+          setLastSaved(new Date());
+        } catch (err) {
+          console.error("Auto-save failed:", err);
+        }
+      }
+    }, 2000); // Debounce for 2 seconds
+
+    return () => clearTimeout(timeoutId);
+  }, [formState, featuredImagePreview, isEditing, autoSaveKey]);
 
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target;
@@ -120,8 +205,7 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
     setFeaturedImagePreview("");
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleSave = async (statusToSave) => {
     setLocalError("");
     setSummaryError("");
     dispatch(clearError());
@@ -151,7 +235,7 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
     payload.append("title", formState.title.trim());
     payload.append("excerpt", formState.excerpt.trim());
     payload.append("content", formState.content.trim());
-    payload.append("status", formState.status);
+    payload.append("status", statusToSave);
     payload.append("isFeatured", formState.isFeatured ? "true" : "false");
     payload.append("categories", formState.category);
 
@@ -173,11 +257,39 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
       } else {
         await dispatch(createBlog(payload)).unwrap();
       }
+      
+      // Clear auto-save after successful save
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(autoSaveKey);
+      }
+      
       navigate(redirectPath);
     } catch (err) {
       setLocalError(
         err?.message || err || "Failed to save blog. Please try again."
       );
+    }
+  };
+
+  const handleSaveAsDraft = async (e) => {
+    e.preventDefault();
+    await handleSave("draft");
+  };
+
+  const handlePublish = async (e) => {
+    e.preventDefault();
+    await handleSave("published");
+  };
+
+  const handleCancel = () => {
+    // Clear auto-save when canceling
+    if (typeof window !== "undefined" && !isEditing) {
+      if (window.confirm("Are you sure you want to cancel? Your draft will be saved locally.")) {
+        localStorage.removeItem(autoSaveKey);
+        navigate(redirectPath);
+      }
+    } else {
+      navigate(redirectPath);
     }
   };
 
@@ -207,6 +319,13 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
             <p className="text-gray-400 mt-2">
               Craft long-form posts with featured images, tags, and SEO details.
             </p>
+            {!isEditing && lastSaved && (
+              <p className="text-xs text-green-400 mt-2 flex items-center gap-2">
+                <Save className="h-3 w-3" />
+                Draft auto-saved {lastSaved.toLocaleTimeString()}
+                {isAutoSaving && <span className="text-gray-500">(saving...)</span>}
+              </p>
+            )}
           </div>
 
           {(localError || error) && (
@@ -215,7 +334,7 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
             </div>
           )}
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-300">
                 Title<span className="text-red-400">*</span>
@@ -291,19 +410,6 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
                 </select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">Status</label>
-                <select
-                  name="status"
-                  value={formState.status}
-                  onChange={handleChange}
-                  className="select select-bordered w-full border-white/10 bg-gray-950/40 text-white"
-                >
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
-                  <option value="archived">Archived</option>
-                </select>
-              </div>
             </div>
 
             <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-gray-950/40 px-4 py-3 text-sm text-gray-300">
@@ -369,10 +475,11 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3 pt-4">
+            <div className="flex flex-wrap gap-3 pt-4 border-t border-white/10">
               <button
-                type="submit"
-                className="btn btn-primary px-6"
+                type="button"
+                onClick={handleSaveAsDraft}
+                className="btn btn-secondary px-6 flex items-center gap-2"
                 disabled={loading}
               >
                 {loading ? (
@@ -381,13 +488,35 @@ function BlogForm({ redirectPath = "/admin/blogs", blogId: blogIdProp }) {
                     Saving...
                   </>
                 ) : (
-                  "Save blog"
+                  <>
+                    <Save className="h-4 w-4" />
+                    Save as Draft
+                  </>
                 )}
               </button>
               <button
                 type="button"
-                onClick={() => navigate(redirectPath)}
+                onClick={handlePublish}
+                className="btn btn-primary px-6 flex items-center gap-2"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Publishing...
+                  </>
+                ) : (
+                  <>
+                    <FileText className="h-4 w-4" />
+                    Publish
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={handleCancel}
                 className="btn btn-ghost text-gray-300 hover:text-white"
+                disabled={loading}
               >
                 Cancel
               </button>
