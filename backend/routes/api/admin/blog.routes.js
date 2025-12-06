@@ -18,7 +18,7 @@ router.post('/addblog',
         ]
     ),
     blogController.createBlog);
-router.get('/getallblogs', blogController.getAllBlogs);
+router.post('/getallblogs', blogController.getAllBlogs);
 router.get('/:blogid/getblogbyid', blogController.getBlogById);
 router.put('/:blogid/updateblog',
     pdfUpload.fileUpload(

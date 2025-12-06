@@ -38,7 +38,7 @@ async function isMockModeEnabled() {
 }
 
 // Get all blogs
-// Backend endpoint: GET /api/admin/blogs/getallblogs
+// Backend endpoint: POST /api/admin/blogs/getallblogs
 // Query params: page, size, search
 // Body: { status } (optional)
 export async function getAllBlogs(filters = {}) {
@@ -52,7 +52,7 @@ export async function getAllBlogs(filters = {}) {
     // So we'll include status in query params (backend may not use it, but it's available)
     const params = { page, size, search };
     if (status) params.status = status;
-    const response = await api.get("/admin/blogs/getallblogs", { params });
+    const response = await api.post("/admin/blogs/getallblogs", { params });
 
     // Backend returns: { success: true, data: { docs: [...], totalItems, currentPage, totalPages } }
     if (response.data?.success && response.data?.data?.docs) {
