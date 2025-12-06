@@ -40,19 +40,40 @@ exports.getAllCompanies = async (req, res) => {
             .populate('operatorId', 'fullName email profileImage')
             .sort({ createdAt: -1 })
             .skip(offset)
-            .limit(limit);
+            .limit(limit)
+            .lean();
 
         const totalItems = await CompanyModel.countDocuments(query);
 
-        // Transform for frontend compatibility
-        const transformedCompanies = companies.map(company => {
-            const companyObj = company.toObject();
-            companyObj.id = companyObj._id.toString();
-            return companyObj;
-        });
+        const reviews = await ReviewModel.find({
+            companyId: { $in: companies.map(c => c._id) }
+        }).populate("userId").lean();
+
+        const reviewsByCompany = reviews.reduce((acc, review) => {
+            if (!acc[review.companyId]) {
+                acc[review.companyId] = [];
+            }
+            acc[review.companyId].push(review);
+            return acc;
+        }, {});
+
+        const companiesWithRatings = companies.map(company => {
+            const companyReviews = reviewsByCompany[company._id] || [];
+            const reviewers = companyReviews.map(r => r.userId);
+            const totalReviews = companyReviews.length;
+            const ratingsAggregate = totalReviews > 0
+                ? parseFloat((companyReviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1))
+                : 0;
+            return {
+                ...company,
+                reviewers,
+                ratingsAggregate,
+                totalReviews
+            };
+        })
 
         return sendSuccessResponse(res, getPaginationData(
-            { count: totalItems, docs: transformedCompanies },
+            { count: totalItems, docs: companiesWithRatings },
             page,
             limit
         ));
