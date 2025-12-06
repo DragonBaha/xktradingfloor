@@ -40,19 +40,29 @@ export const fetchAllBlogs = createAsyncThunk(
   ) => {
     try {
       const token = getAuthToken();
+
+      // Backend route: POST /api/admin/blogs/getallblogs
+      // Status must be in body payload, not query params (following getAllCompanies pattern)
+      // Query params: page, size, search
+      // Body: { status } (optional)
+      const requestBody = {};
+      if (status) {
+        requestBody.status = status;
+      }
+
       const config = {
         headers: {
           "Content-Type": "application/json",
           ...(token && { Authorization: `Bearer ${token}` }),
         },
-        params: { page, size, search, ...(status && { status }) },
+        params: { page, size, search },
       };
 
-      // Backend route: GET /api/admin/blogs/getallblogs
-      // Note: Backend controller reads status from req.body (line 66), but GET requests
-      // don't typically have bodies. Frontend sends status in query params.
-      // Backend should be updated to read from req.query.status for consistency.
-      const response = await api.get("/admin/blogs/getallblogs", config);
+      const response = await api.post(
+        "/admin/blogs/getallblogs",
+        requestBody,
+        config
+      );
 
       return response.data;
     } catch (error) {
@@ -216,8 +226,8 @@ export const updateBlog = createAsyncThunk(
 
       return rejectWithValue(
         error.response?.data?.message ||
-        error.message ||
-        "Failed to update blog"
+          error.message ||
+          "Failed to update blog"
       );
     }
   }
@@ -270,8 +280,8 @@ export const deleteBlog = createAsyncThunk(
 
       return rejectWithValue(
         error.response?.data?.message ||
-        error.message ||
-        "Failed to delete blog"
+          error.message ||
+          "Failed to delete blog"
       );
     }
   }
@@ -323,8 +333,8 @@ export const permanentDeleteBlog = createAsyncThunk(
 
       return rejectWithValue(
         error.response?.data?.message ||
-        error.message ||
-        "Failed to permanently delete blog"
+          error.message ||
+          "Failed to permanently delete blog"
       );
     }
   }
@@ -338,29 +348,78 @@ export const fetchUserBlogs = createAsyncThunk(
   ) => {
     try {
       const token = getAuthToken();
-      const config = {
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-        params: { page, size, search, userId },
-      };
-
-      // Using admin endpoint with userId filter
-      const response = await api.get("/admin/blogs/getallblogs", {
-        ...config,
-        params: { ...config.params, ...(status && { status }), userId },
-      });
-
-      // Filter blogs by userId on frontend if backend doesn't support it
-      let blogs = response.data.data || response.data.blogs || [];
-      if (userId) {
-        blogs = blogs.filter(
-          (blog) => blog.author?._id === userId || blog.author === userId
-        );
+      if (!token) {
+        return rejectWithValue("Authentication required. Please log in.");
       }
 
-      return { ...response.data, data: blogs, blogs };
+      if (!userId) {
+        return rejectWithValue("User ID is required to fetch blogs.");
+      }
+
+      // Try user-specific endpoint first (if it exists)
+      // This endpoint should allow users to fetch their own blogs with limited scope
+      try {
+        const userConfig = {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          params: { page, size, search, status },
+        };
+
+        const userResponse = await api.get(`/user/blogs`, userConfig);
+
+        // Filter to ensure only user's own blogs are returned
+        let blogs = userResponse.data?.data || userResponse.data?.blogs || [];
+        blogs = blogs.filter(
+          (blog) =>
+            blog.author?._id === userId ||
+            blog.author === userId ||
+            blog.author?._id?.toString() === userId.toString()
+        );
+
+        return { ...userResponse.data, data: blogs, blogs };
+      } catch (userError) {
+        // User endpoint doesn't exist or failed - try admin endpoint with userId filter
+        // Backend should allow this for users with limited scope (only their own blogs)
+        const requestBody = {};
+        if (status) {
+          requestBody.status = status;
+        }
+
+        const config = {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          params: { page, size, search, userId },
+        };
+
+        // Using admin endpoint with userId filter
+        // Backend should allow users to access this with limited scope
+        const response = await api.post(
+          "/admin/blogs/getallblogs",
+          requestBody,
+          config
+        );
+
+        // Filter blogs by userId on frontend to ensure only own blogs are shown
+        let blogs =
+          response.data?.data?.docs ||
+          response.data?.data ||
+          response.data?.blogs ||
+          [];
+
+        // Double-check: filter to ensure only user's own blogs
+        blogs = blogs.filter((blog) => {
+          const authorId = blog.author?._id || blog.author;
+          return (
+            authorId?.toString() === userId.toString() || authorId === userId
+          );
+        });
+
+        return { ...response.data, data: blogs, blogs };
+      }
     } catch (error) {
       // Handle connection refused or network errors gracefully
       if (
@@ -378,6 +437,19 @@ export const fetchUserBlogs = createAsyncThunk(
           "Backend server is not running. Please start the backend server or contact support."
         );
       }
+
+      // Handle 403 Forbidden - user doesn't have permission
+      if (error.response?.status === 403) {
+        return rejectWithValue(
+          "You are not authorized to perform this operation. Please contact support if you believe this is an error."
+        );
+      }
+
+      // Handle 401 Unauthorized
+      if (error.response?.status === 401) {
+        return rejectWithValue("Unauthorized. Please log in again.");
+      }
+
       return rejectWithValue(
         error.response?.data?.message || "Failed to fetch user blogs"
       );
@@ -393,6 +465,14 @@ export const fetchOperatorBlogs = createAsyncThunk(
   ) => {
     try {
       const token = getAuthToken();
+
+      // Backend route: POST /api/admin/blogs/getallblogs
+      // Status must be in body payload, not query params
+      const requestBody = {};
+      if (status) {
+        requestBody.status = status;
+      }
+
       const config = {
         headers: {
           "Content-Type": "application/json",
@@ -402,10 +482,11 @@ export const fetchOperatorBlogs = createAsyncThunk(
       };
 
       // Fetch all blogs for operators (they can see all but only edit/delete their own)
-      const response = await api.get("/admin/blogs/getallblogs", {
-        ...config,
-        params: { ...config.params, ...(status && { status }) },
-      });
+      const response = await api.post(
+        "/admin/blogs/getallblogs",
+        requestBody,
+        config
+      );
 
       return response.data;
     } catch (error) {
@@ -450,11 +531,15 @@ export const fetchPublishedBlogs = createAsyncThunk(
     const isAuthenticated = !!token;
 
     // Try public endpoint first (works for everyone)
+    // Backend route: GET /api/blogs/getpublishedblogs (no /public prefix)
     try {
       const publicConfig = {
         params: { page, limit, category, tag, search, featured },
       };
-      const publicResponse = await api.get("/public/blogs", publicConfig);
+      const publicResponse = await api.get(
+        "/blogs/getpublishedblogs",
+        publicConfig
+      );
 
       if (
         publicResponse.data?.data &&
@@ -484,17 +569,24 @@ export const fetchPublishedBlogs = createAsyncThunk(
     // Fallback to admin endpoint (only for authenticated users)
     if (isAuthenticated) {
       try {
+        // Backend route: POST /api/admin/blogs/getallblogs
+        // Status must be in body payload, not query params
+        const requestBody = { status: "published" };
+
         const config = {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          params: { page, size: limit, search, status: "published" },
+          params: { page, size: limit, search },
         };
 
         // Use admin endpoint with published status filter
-        // Backend route: GET /admin/blogs/getallblogs
-        const response = await api.get("/admin/blogs/getallblogs", config);
+        const response = await api.post(
+          "/admin/blogs/getallblogs",
+          requestBody,
+          config
+        );
 
         // Handle different response structures
         let blogs = [];
@@ -538,10 +630,10 @@ export const fetchPublishedBlogs = createAsyncThunk(
           data: blogs,
           pagination: response.data?.pagination ||
             response.data?.data?.pagination || {
-            page: 1,
-            totalPages: 1,
-            totalItems: blogs.length,
-          },
+              page: 1,
+              totalPages: 1,
+              totalItems: blogs.length,
+            },
         };
       } catch (error) {
         // Handle connection refused gracefully
@@ -704,8 +796,8 @@ export const unflagBlog = createAsyncThunk(
 
       return rejectWithValue(
         error.response?.data?.message ||
-        error.message ||
-        "Failed to unflag blog"
+          error.message ||
+          "Failed to unflag blog"
       );
     }
   }

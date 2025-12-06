@@ -5,7 +5,7 @@ import api from "./api.js";
 const FORCE_REAL_DATA_MODE = true;
 
 // Helper to check if mock mode is enabled
-// Backend endpoint: GET /api/public/settings/mock-mode
+// Backend endpoint: GET /api/settings/mock-mode (no /public prefix)
 async function isMockModeEnabled() {
   // If force real data mode is enabled, always return false (use real data)
   if (FORCE_REAL_DATA_MODE) {
@@ -14,7 +14,7 @@ async function isMockModeEnabled() {
 
   // Try to fetch from backend first
   try {
-    const response = await api.get("/public/settings/mock-mode");
+    const response = await api.get("/settings/mock-mode");
     // Backend returns: { success: true, data: { enabled: boolean } }
     if (response?.data?.data?.enabled !== undefined) {
       const enabled = response.data.data.enabled;
@@ -122,101 +122,104 @@ export async function getAllCompanies(filters = {}) {
 
   // Always try to fetch from backend first (only if mock mode is OFF)
   if (!mockMode) {
-    // For unauthenticated users, ONLY try public endpoint (don't try admin endpoint)
-    if (!authenticated) {
+    // Try public endpoint first for all users (authenticated or not)
+    // This should work for regular users without admin access
+    try {
+      // Try /public/companies first (following the pattern of /public/blogs)
+      const publicResponse = await api.get("/public/companies", {
+        params: filters,
+      });
+      if (
+        publicResponse.data?.data &&
+        Array.isArray(publicResponse.data.data)
+      ) {
+        return { data: publicResponse.data.data };
+      }
+      if (Array.isArray(publicResponse.data)) {
+        return { data: publicResponse.data };
+      }
+      return publicResponse;
+    } catch (publicError) {
+      // If /public/companies doesn't exist, try /companies
       try {
-        const publicResponse = await api.get("/public/companies", {
+        const companiesResponse = await api.get("/companies", {
           params: filters,
         });
         if (
-          publicResponse.data?.data &&
-          Array.isArray(publicResponse.data.data)
+          companiesResponse.data?.data &&
+          Array.isArray(companiesResponse.data.data)
         ) {
-          return { data: publicResponse.data.data };
+          return { data: companiesResponse.data.data };
         }
-        if (Array.isArray(publicResponse.data)) {
-          return { data: publicResponse.data };
+        if (Array.isArray(companiesResponse.data)) {
+          return { data: companiesResponse.data };
         }
-        return publicResponse;
-      } catch (publicError) {
-        // Public endpoint failed - return empty array for unauthenticated users
-        // Don't try admin endpoint as it will always fail with 403
-        return { data: [] };
+        return companiesResponse;
+      } catch (companiesError) {
+        // Both public endpoints failed - continue to try admin endpoint for authenticated users
+        // For unauthenticated users, return empty array
+        if (!authenticated) {
+          return { data: [] };
+        }
       }
     }
 
-    // For authenticated users, try admin endpoint
-    try {
-      // Backend expects POST for getAllCompanies with filters in body and query params
-      const { search, page, size, ...bodyFilters } = filters;
+    // For authenticated users, try admin endpoint as fallback
+    // This will work for admin/operator users
+    if (authenticated) {
+      try {
+        // Backend expects POST for getAllCompanies with filters in body and query params
+        const { search, page, size, ...bodyFilters } = filters;
 
-      // Request approved companies for public visibility when no status filter is set
-      const requestBody = { ...bodyFilters };
-      if (!requestBody.status && !filters.status) {
-        // Default to approved if no status specified
-        requestBody.status = "approved";
-      }
-
-      const response = await api.post(
-        "/admin/company/getallcompanies",
-        requestBody,
-        {
-          params: { search, page, size },
+        // Request approved companies for public visibility when no status filter is set
+        const requestBody = { ...bodyFilters };
+        if (!requestBody.status && !filters.status) {
+          // Default to approved if no status specified
+          requestBody.status = "approved";
         }
-      );
-      // Backend returns: { success: true, data: { docs: [...], totalItems, currentPage, totalPages } }
-      // Transform to expected format: { data: [...] }
-      if (response.data?.success && response.data?.data?.docs) {
-        // Map _id to id for frontend compatibility
-        backendCompanies = response.data.data.docs.map((company) => ({
-          ...company,
-          id: company._id || company.id,
-        }));
-        backendRequestSucceeded = true;
-      } else if (Array.isArray(response.data?.data)) {
-        backendCompanies = response.data.data.map((company) => ({
-          ...company,
-          id: company._id || company.id,
-        }));
-        backendRequestSucceeded = true;
-      } else if (Array.isArray(response.data)) {
-        backendCompanies = response.data;
-        backendRequestSucceeded = true;
-      }
-    } catch (error) {
-      // If we get 401 (unauthorized) or 403 (forbidden), the endpoint requires admin authentication
-      // This is expected for non-admin users - silently handle it
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        backendRequestSucceeded = false;
-        // For authenticated users who don't have admin access, try public endpoint as fallback
-        try {
-          const publicResponse = await api.get("/public/companies", {
-            params: filters,
-          });
-          if (
-            publicResponse.data?.data &&
-            Array.isArray(publicResponse.data.data)
-          ) {
-            return { data: publicResponse.data.data };
+
+        const response = await api.post(
+          "/admin/company/getallcompanies",
+          requestBody,
+          {
+            params: { search, page, size },
           }
-          if (Array.isArray(publicResponse.data)) {
-            return { data: publicResponse.data };
-          }
-          return publicResponse;
-        } catch (publicError) {
-          // Public endpoint also failed - return empty array
+        );
+        // Backend returns: { success: true, data: { docs: [...], totalItems, currentPage, totalPages } }
+        // Transform to expected format: { data: [...] }
+        if (response.data?.success && response.data?.data?.docs) {
+          // Map _id to id for frontend compatibility
+          backendCompanies = response.data.data.docs.map((company) => ({
+            ...company,
+            id: company._id || company.id,
+          }));
+          backendRequestSucceeded = true;
+        } else if (Array.isArray(response.data?.data)) {
+          backendCompanies = response.data.data.map((company) => ({
+            ...company,
+            id: company._id || company.id,
+          }));
+          backendRequestSucceeded = true;
+        } else if (Array.isArray(response.data)) {
+          backendCompanies = response.data;
+          backendRequestSucceeded = true;
+        }
+      } catch (error) {
+        // If we get 401 (unauthorized) or 403 (forbidden), the endpoint requires admin authentication
+        // This is expected for non-admin users - return empty array
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          backendRequestSucceeded = false;
+        } else if (
+          error.code === "ERR_NETWORK" ||
+          error.message?.includes("ERR_CONNECTION_REFUSED") ||
+          error.code === "ECONNREFUSED"
+        ) {
+          // Backend server is down - return empty array
+          backendRequestSucceeded = false;
+        } else {
+          // Other errors - backend might be down
           backendRequestSucceeded = false;
         }
-      } else if (
-        error.code === "ERR_NETWORK" ||
-        error.message?.includes("ERR_CONNECTION_REFUSED") ||
-        error.code === "ECONNREFUSED"
-      ) {
-        // Backend server is down - return empty array
-        backendRequestSucceeded = false;
-      } else {
-        // Other errors - backend might be down
-        backendRequestSucceeded = false;
       }
     }
   }
@@ -619,29 +622,67 @@ export async function toggleCompanyStatus(companyId) {
 }
 
 // Add promo code to company
+// Backend endpoint: POST /api/admin/company/:companyId/addpromocode
 export async function addPromoCode(companyId, promoData) {
-  // return api.post(`/companies/${companyId}/promo-codes`, promoData);
+  const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
+
+  const userRole = user?.role?.toLowerCase();
+  if (
+    !user ||
+    (userRole !== "operator" && userRole !== "admin" && userRole !== "subadmin")
+  ) {
+    throw new Error("Only operators and admins can add promo codes");
+  }
+
+  // Try backend API first (when mock mode is OFF)
+  if (!mockMode) {
+    try {
+      // Backend endpoint: POST /api/admin/company/:companyId/addpromocode
+      // Body: { code, discount, discountType, validFrom, validTo, featured }
+      const response = await api.post(
+        `/admin/company/${companyId}/addpromocode`,
+        promoData
+      );
+
+      // Backend returns: { success: true, message: "...", data: {...} }
+      if (response.data?.success && response.data?.data) {
+        return { data: response.data.data };
+      }
+      return response;
+    } catch (error) {
+      if (error.response?.status === 401) {
+        throw new Error("Unauthorized. Please log in again.");
+      }
+      if (error.response?.status === 403) {
+        throw new Error(
+          error.response?.data?.message ||
+            "You don't have permission to add promo codes to this company"
+        );
+      }
+      // If backend fails and mock mode is OFF, throw error
+      if (!mockMode) {
+        throw error;
+      }
+    }
+  }
+
+  // Mock data implementation (only if mock mode is ON or backend failed)
   const companies = await loadCompanies();
   const stored = localStorage.getItem("xktf_companies");
   let allCompanies = stored ? JSON.parse(stored) : companies;
 
-  const companyIndex = allCompanies.findIndex((c) => c.id === companyId);
+  const companyIndex = allCompanies.findIndex(
+    (c) => c.id === companyId || c._id === companyId
+  );
   if (companyIndex === -1) {
     throw new Error("Company not found");
   }
 
   const company = allCompanies[companyIndex];
 
-  const userRole = user?.role?.toLowerCase();
   if (userRole === "operator" && company.operatorId !== user.id) {
     throw new Error("You can only add promo codes to your own companies");
-  }
-  if (
-    !user ||
-    (userRole !== "operator" && userRole !== "admin" && userRole !== "subadmin")
-  ) {
-    throw new Error("Only operators and admins can add promo codes");
   }
 
   const newPromo = {
@@ -660,24 +701,12 @@ export async function addPromoCode(companyId, promoData) {
 }
 
 // Update promo code
+// Backend endpoint: PUT /api/admin/company/:companyId/updatepromocode/:promoId
 export async function updatePromoCode(companyId, promoId, updates) {
-  // return api.put(`/companies/${companyId}/promo-codes/${promoId}`, updates);
+  const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
-  const companies = await loadCompanies();
-  const stored = localStorage.getItem("xktf_companies");
-  let allCompanies = stored ? JSON.parse(stored) : companies;
-
-  const companyIndex = allCompanies.findIndex((c) => c.id === companyId);
-  if (companyIndex === -1) {
-    throw new Error("Company not found");
-  }
-
-  const company = allCompanies[companyIndex];
 
   const userRole = user?.role?.toLowerCase();
-  if (userRole === "operator" && company.operatorId !== user.id) {
-    throw new Error("You can only update promo codes for your own companies");
-  }
   if (
     !user ||
     (userRole !== "operator" && userRole !== "admin" && userRole !== "subadmin")
@@ -685,7 +714,59 @@ export async function updatePromoCode(companyId, promoId, updates) {
     throw new Error("Only operators and admins can update promo codes");
   }
 
-  const promoIndex = company.promoCodes.findIndex((p) => p.id === promoId);
+  // Try backend API first (when mock mode is OFF)
+  if (!mockMode) {
+    try {
+      // Backend endpoint: PUT /api/admin/company/:companyId/updatepromocode/:promoId
+      // Body: { code, discount, discountType, validFrom, validTo, featured }
+      const response = await api.put(
+        `/admin/company/${companyId}/updatepromocode/${promoId}`,
+        updates
+      );
+
+      // Backend returns: { success: true, message: "...", data: {...} }
+      if (response.data?.success && response.data?.data) {
+        return { data: response.data.data };
+      }
+      return response;
+    } catch (error) {
+      if (error.response?.status === 401) {
+        throw new Error("Unauthorized. Please log in again.");
+      }
+      if (error.response?.status === 403) {
+        throw new Error(
+          error.response?.data?.message ||
+            "You don't have permission to update promo codes for this company"
+        );
+      }
+      // If backend fails and mock mode is OFF, throw error
+      if (!mockMode) {
+        throw error;
+      }
+    }
+  }
+
+  // Mock data implementation (only if mock mode is ON or backend failed)
+  const companies = await loadCompanies();
+  const stored = localStorage.getItem("xktf_companies");
+  let allCompanies = stored ? JSON.parse(stored) : companies;
+
+  const companyIndex = allCompanies.findIndex(
+    (c) => c.id === companyId || c._id === companyId
+  );
+  if (companyIndex === -1) {
+    throw new Error("Company not found");
+  }
+
+  const company = allCompanies[companyIndex];
+
+  if (userRole === "operator" && company.operatorId !== user.id) {
+    throw new Error("You can only update promo codes for your own companies");
+  }
+
+  const promoIndex = company.promoCodes.findIndex(
+    (p) => p.id === promoId || p._id === promoId
+  );
   if (promoIndex === -1) {
     throw new Error("Promo code not found");
   }
@@ -702,24 +783,12 @@ export async function updatePromoCode(companyId, promoId, updates) {
 }
 
 // Delete promo code
+// Backend endpoint: DELETE /api/admin/company/:companyId/deletepromocode/:promoId
 export async function deletePromoCode(companyId, promoId) {
-  // return api.delete(`/companies/${companyId}/promo-codes/${promoId}`);
+  const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
-  const companies = await loadCompanies();
-  const stored = localStorage.getItem("xktf_companies");
-  let allCompanies = stored ? JSON.parse(stored) : companies;
-
-  const companyIndex = allCompanies.findIndex((c) => c.id === companyId);
-  if (companyIndex === -1) {
-    throw new Error("Company not found");
-  }
-
-  const company = allCompanies[companyIndex];
 
   const userRole = user?.role?.toLowerCase();
-  if (userRole === "operator" && company.operatorId !== user.id) {
-    throw new Error("You can only delete promo codes from your own companies");
-  }
   if (
     !user ||
     (userRole !== "operator" && userRole !== "admin" && userRole !== "subadmin")
@@ -727,7 +796,57 @@ export async function deletePromoCode(companyId, promoId) {
     throw new Error("Only operators and admins can delete promo codes");
   }
 
-  company.promoCodes = company.promoCodes.filter((p) => p.id !== promoId);
+  // Try backend API first (when mock mode is OFF)
+  if (!mockMode) {
+    try {
+      // Backend endpoint: DELETE /api/admin/company/:companyId/deletepromocode/:promoId
+      const response = await api.delete(
+        `/admin/company/${companyId}/deletepromocode/${promoId}`
+      );
+
+      // Backend returns: { success: true, message: "..." }
+      if (response.data?.success) {
+        return { data: { success: true } };
+      }
+      return response;
+    } catch (error) {
+      if (error.response?.status === 401) {
+        throw new Error("Unauthorized. Please log in again.");
+      }
+      if (error.response?.status === 403) {
+        throw new Error(
+          error.response?.data?.message ||
+            "You don't have permission to delete promo codes from this company"
+        );
+      }
+      // If backend fails and mock mode is OFF, throw error
+      if (!mockMode) {
+        throw error;
+      }
+    }
+  }
+
+  // Mock data implementation (only if mock mode is ON or backend failed)
+  const companies = await loadCompanies();
+  const stored = localStorage.getItem("xktf_companies");
+  let allCompanies = stored ? JSON.parse(stored) : companies;
+
+  const companyIndex = allCompanies.findIndex(
+    (c) => c.id === companyId || c._id === companyId
+  );
+  if (companyIndex === -1) {
+    throw new Error("Company not found");
+  }
+
+  const company = allCompanies[companyIndex];
+
+  if (userRole === "operator" && company.operatorId !== user.id) {
+    throw new Error("You can only delete promo codes from your own companies");
+  }
+
+  company.promoCodes = company.promoCodes.filter(
+    (p) => p.id !== promoId && p._id !== promoId
+  );
   company.updatedAt = new Date().toISOString();
 
   allCompanies[companyIndex] = company;

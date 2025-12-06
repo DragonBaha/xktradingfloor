@@ -5,7 +5,7 @@ import api from "./api.js";
 const FORCE_REAL_DATA_MODE = true;
 
 // Helper to check if mock mode is enabled
-// Backend endpoint: GET /api/public/settings/mock-mode
+// Backend endpoint: GET /api/settings/mock-mode (no /public prefix)
 async function isMockModeEnabled() {
   // If force real data mode is enabled, always return false (use real data)
   if (FORCE_REAL_DATA_MODE) {
@@ -14,7 +14,7 @@ async function isMockModeEnabled() {
 
   // Try to fetch from backend first
   try {
-    const response = await api.get("/public/settings/mock-mode");
+    const response = await api.get("/settings/mock-mode");
     // Backend returns: { success: true, data: { enabled: boolean } }
     if (response?.data?.data?.enabled !== undefined) {
       const enabled = response.data.data.enabled;
@@ -38,9 +38,9 @@ async function isMockModeEnabled() {
 }
 
 // Get all blogs
-// Backend endpoint: GET /api/admin/blogs/getallblogs
+// Backend endpoint: POST /api/admin/blogs/getallblogs
 // Query params: page, size, search
-// Body: { status } (optional)
+// Body: { status } (optional) - status must be in payload, not query params
 export async function getAllBlogs(filters = {}) {
   const mockMode = await isMockModeEnabled();
   let backendBlogs = [];
@@ -48,11 +48,15 @@ export async function getAllBlogs(filters = {}) {
   // Always try to fetch from backend first
   try {
     const { page, size, search, status } = filters;
-    // Note: Backend reads status from req.body, but GET requests don't support body
-    // So we'll include status in query params (backend may not use it, but it's available)
+    
+    // Status must be in body payload, not query params (following getAllCompanies pattern)
+    const requestBody = {};
+    if (status) {
+      requestBody.status = status;
+    }
+    
     const params = { page, size, search };
-    if (status) params.status = status;
-    const response = await api.get("/admin/blogs/getallblogs", { params });
+    const response = await api.post("/admin/blogs/getallblogs", requestBody, { params });
 
     // Backend returns: { success: true, data: { docs: [...], totalItems, currentPage, totalPages } }
     if (response.data?.success && response.data?.data?.docs) {

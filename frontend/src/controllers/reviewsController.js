@@ -13,8 +13,9 @@ async function isMockModeEnabled() {
   }
 
   // Try to fetch from backend first (for global sync)
+  // Backend endpoint: GET /api/settings/mock-mode (no /public prefix)
   try {
-    const response = await api.get("/public/settings/mock-mode");
+    const response = await api.get("/settings/mock-mode");
     if (response?.data?.enabled !== undefined) {
       // Sync to localStorage for backward compatibility
       if (typeof window !== "undefined") {
@@ -78,9 +79,13 @@ export async function getAllReviews(filters = {}) {
   const mockMode = await isMockModeEnabled();
 
   // If mock mode is OFF, try to fetch from backend
+  // Note: Backend doesn't have a public reviews endpoint in Postman collection
+  // Reviews are accessed via admin endpoints or company-specific endpoints
   if (!mockMode) {
     try {
-      const response = await api.get("/public/reviews", { params: filters });
+      // This endpoint may not exist - backend doesn't show it in Postman
+      // Keeping for backward compatibility but it will likely fail
+      const response = await api.get("/reviews", { params: filters });
       // Handle different response structures
       if (Array.isArray(response.data?.data)) {
         return { data: response.data.data };
@@ -155,15 +160,17 @@ export async function getReviewsByCompanyId(companyId) {
 }
 
 // Get reviews by user ID
-// Backend endpoint: GET /api/admin/review/:userId/getreviewsbyusers
-export async function getReviewsByUserId(userId) {
+// Backend endpoint: GET /api/admin/review/:userId/getreviewsbyusers?page=1&size=10
+// Query params: page, size (not in URL path)
+export async function getReviewsByUserId(userId, { page = 1, size = 10 } = {}) {
   const mockMode = await isMockModeEnabled();
 
   // Try backend API first (when mock mode is OFF)
   if (!mockMode) {
     try {
       const response = await api.get(
-        `/admin/review/${userId}/getreviewsbyusers`
+        `/admin/review/${userId}/getreviewsbyusers`,
+        { params: { page, size } }
       );
       // Backend returns: { success: true, data: { docs: [...], totalItems, currentPage, totalPages } }
       if (response.data?.success && response.data?.data?.docs) {
@@ -214,7 +221,7 @@ export async function createReview(reviewData) {
   }
 
   // Backend API call
-  // Backend endpoint: POST /api/admin/review/addReview
+  // Backend endpoint: POST /api/admin/review/addreview (lowercase)
   // Backend expects: { companyId, rating, title, body, comment }
   if (!mockMode) {
     try {
@@ -227,7 +234,7 @@ export async function createReview(reviewData) {
           reviewData.comment || reviewData.description || reviewData.body || "",
       };
 
-      const response = await api.post("/admin/review/addReview", payload);
+      const response = await api.post("/admin/review/addreview", payload);
 
       // Backend returns: { success: true, message: "...", data: {...} }
       if (response.data?.success && response.data?.data) {
@@ -347,7 +354,7 @@ export async function updateReview(reviewId, updates) {
 }
 
 // Delete review (users can only delete their own reviews)
-// Backend endpoint: DELETE /api/admin/review/:reviewId/deletereview
+// Backend endpoint: DELETE /api/admin/review/:reviewId/deleteReview
 export async function deleteReview(reviewId) {
   const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
@@ -360,7 +367,7 @@ export async function deleteReview(reviewId) {
   if (!mockMode) {
     try {
       const response = await api.delete(
-        `/admin/review/${reviewId}/deletereview`
+        `/admin/review/${reviewId}/deleteReview`
       );
       // Backend returns: { success: true, message: "..." }
       if (response.data?.success) {

@@ -43,11 +43,39 @@ function MyBlogsContent() {
     };
   }, [dispatch]);
 
+  // Helper to check if user owns the blog
+  const isOwnBlog = (blog) => {
+    if (!blog || !user?.id) return false;
+    const authorId = blog.author?._id || blog.author;
+    return authorId?.toString() === user.id.toString() || authorId === user.id;
+  };
+
   const handleEdit = (blogId) => {
+    // Verify ownership before allowing edit
+    const blog = blogs.find((b) => (b._id || b.id) === blogId);
+    if (!blog) {
+      alert("Blog not found.");
+      return;
+    }
+    if (!isOwnBlog(blog)) {
+      alert("You can only edit your own blogs.");
+      return;
+    }
     navigate(`/blogs/edit/${blogId}`);
   };
 
   const handleDelete = async (blogId) => {
+    // Verify ownership before allowing delete
+    const blog = blogs.find((b) => (b._id || b.id) === blogId);
+    if (!blog) {
+      alert("Blog not found.");
+      return;
+    }
+    if (!isOwnBlog(blog)) {
+      alert("You can only delete your own blogs.");
+      return;
+    }
+
     if (
       window.confirm(
         "Are you sure you want to delete this blog? This action can be undone."
@@ -72,6 +100,17 @@ function MyBlogsContent() {
   };
 
   const handlePublish = async (blogId) => {
+    // Verify ownership before allowing publish
+    const blog = blogs.find((b) => (b._id || b.id) === blogId);
+    if (!blog) {
+      alert("Blog not found.");
+      return;
+    }
+    if (!isOwnBlog(blog)) {
+      alert("You can only publish your own blogs.");
+      return;
+    }
+
     if (!window.confirm("Are you sure you want to publish this blog? It will be visible to all users.")) {
       return;
     }
@@ -95,6 +134,17 @@ function MyBlogsContent() {
   };
 
   const handleUnpublish = async (blogId) => {
+    // Verify ownership before allowing unpublish
+    const blog = blogs.find((b) => (b._id || b.id) === blogId);
+    if (!blog) {
+      alert("Blog not found.");
+      return;
+    }
+    if (!isOwnBlog(blog)) {
+      alert("You can only unpublish your own blogs.");
+      return;
+    }
+
     if (!window.confirm("Are you sure you want to unpublish this blog? It will no longer be visible to users.")) {
       return;
     }
@@ -201,7 +251,11 @@ function MyBlogsContent() {
 
         {/* Blog List */}
         <BlogList
-          blogs={blogs}
+          blogs={blogs.filter((blog) => {
+            // Additional frontend filtering to ensure only own blogs are shown
+            const authorId = blog.author?._id || blog.author;
+            return authorId?.toString() === user?.id?.toString() || authorId === user?.id;
+          })}
           loading={loading}
           onEdit={handleEdit}
           onDelete={handleDelete}

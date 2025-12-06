@@ -51,7 +51,6 @@ api.interceptors.response.use(
     const expected404Endpoints = [
       "/settings/mock-mode",
       "/admin/settings/mock-mode",
-      "/public/settings/mock-mode",
     ];
 
     // List of admin endpoints that return 403 for non-admin users (expected - suppress errors)
