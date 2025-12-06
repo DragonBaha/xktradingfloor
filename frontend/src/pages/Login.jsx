@@ -45,7 +45,7 @@ function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden">
+    <div className="bg-black min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden">
       <Helmet>
         <title>Login | XK Trading Floor</title>
         <meta
@@ -55,9 +55,9 @@ function Login() {
       </Helmet>
 
       {/* Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-purple-500/10" />
-      <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl" />
-      <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-purple-500/20 blur-3xl" />
+      {/* <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-purple-500/10" /> */}
+      {/* <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl" /> */}
+      {/* <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-purple-500/20 blur-3xl" /> */}
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}

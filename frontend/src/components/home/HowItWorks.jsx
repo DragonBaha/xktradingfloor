@@ -96,15 +96,15 @@ function StepCard({ step, index, isInView }) {
             >
               {step.number}
             </div>
-            <h3 className="text-xl font-bold mb-3 text-white">{step.title}</h3>
-            <p className="text-gray-200 text-sm leading-relaxed line-clamp-4">
+            <h3 className="font-display font-extrabold text-xl sm:text-2xl tracking-tight mb-4 text-white">{step.title}</h3>
+            <p className="text-lg sm:text-xl text-gray-300 font-medium leading-relaxed line-clamp-4">
               {step.description}
             </p>
           </div>
 
           <Link
             to={step.ctaLink}
-            className={`${colors.button} text-white px-6 py-2 rounded-full text-sm font-medium w-fit transition-all hover:scale-105`}
+            className={`${colors.button} text-white px-6 py-3 rounded-full font-medium w-fit transition-all hover:scale-105 shadow-lg`}
           >
             {step.ctaText}
           </Link>
@@ -168,30 +168,38 @@ function HowItWorks() {
   return (
     <section
       ref={sectionRef}
-      className="py-20 bg-gray-950 relative overflow-hidden"
+      className="py-20 bg-black relative overflow-hidden"
     >
       {/* Background decorations */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
-      </div>
+      </div> */}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="text-center mb-16"
         >
-          <div className="inline-block px-6 py-2 rounded-full bg-blue-500/10 backdrop-blur-sm mb-4">
-            <h2 className="text-xl font-semibold text-blue-400">
-              How does it work?
-            </h2>
-          </div>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto mt-4">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight mb-6 leading-tight"
+          >
+            How <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent">Does It Work?</span>
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="text-xl sm:text-2xl text-gray-300 font-medium max-w-2xl mx-auto"
+          >
             Follow these simple steps to begin your trading journey with XK
             Trading Floor
-          </p>
+          </motion.p>
         </motion.div>
 
         {/* Desktop: Horizontal Scroll */}

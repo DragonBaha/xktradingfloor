@@ -17,7 +17,7 @@ function OperatorDashboard() {
   const isAdmin =
     normalizedRole === "admin" || normalizedRole === "subadmin";
   const isOperator = normalizedRole === "operator";
-  const canManageCompanies = isAdmin;
+  const canManageCompanies = isAdmin || isOperator; // Operators can now manage their own companies
 
   React.useEffect(() => {
     if (isOperator || isAdmin) {
@@ -109,12 +109,15 @@ function OperatorDashboard() {
                   <Link to="/operator/blogs" className="btn btn-secondary">
                     Manage Blogs
                   </Link>
-                  <Link to="/operator/reviews" className="btn btn-primary">
+                  <Link to="/operator/reviews" className="btn btn-secondary">
                     Flag Reviews
+                  </Link>
+                  <Link to="/reviews/company/new" className="btn btn-primary">
+                    + Add Company
                   </Link>
                 </>
               )}
-              {canManageCompanies && (
+              {isAdmin && (
                 <>
                   <Link to="/admin/companies" className="btn btn-secondary">
                     Company Dashboard
@@ -135,7 +138,11 @@ function OperatorDashboard() {
             <div className="card">
               <div className="card-body text-center py-12">
                 <div className="text-gray-400 mb-4">No companies found.</div>
-                {canManageCompanies ? (
+                {isOperator ? (
+                  <Link to="/reviews/company/new" className="btn btn-primary">
+                    Create a Company
+                  </Link>
+                ) : canManageCompanies ? (
                   <Link to="/admin/companies/create" className="btn btn-primary">
                     Create a Company
                   </Link>
@@ -153,18 +160,29 @@ function OperatorDashboard() {
                   <CompanyCard company={company} />
                   {canManageCompanies && (
                     <div className="absolute top-4 right-4 flex gap-2">
-                      <Link
-                        to={`/admin/companies/edit/${company.id}`}
-                        className="btn btn-secondary btn-sm"
-                      >
-                        Edit
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(company.id)}
-                        className="btn btn-danger btn-sm"
-                      >
-                        Delete
-                      </button>
+                      {isOperator ? (
+                        <Link
+                          to={`/reviews/company/edit/${company.id}`}
+                          className="btn btn-secondary btn-sm"
+                        >
+                          Edit
+                        </Link>
+                      ) : (
+                        <Link
+                          to={`/admin/companies/edit/${company.id}`}
+                          className="btn btn-secondary btn-sm"
+                        >
+                          Edit
+                        </Link>
+                      )}
+                      {isAdmin && (
+                        <button
+                          onClick={() => handleDelete(company.id)}
+                          className="btn btn-danger btn-sm"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>

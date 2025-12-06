@@ -16,15 +16,17 @@ function Academy() {
   }
 
   return (
-    <div>
+    <div className="bg-black min-h-screen">
       <Helmet>
         <title>Academy | XK Trading Floor</title>
         <meta name="description" content="Master the markets with expert-led programs, live workshops, strategy sessions, and trading bootcamps." />
       </Helmet>
       <HeroAcademy />
-      <EventsGrid onOpenRegister={handleOpenRegister} />
-      <FreeResources />
-      <PodcastSection />
+      <div className="bg-black">
+        <EventsGrid onOpenRegister={handleOpenRegister} />
+        <FreeResources />
+        <PodcastSection />
+      </div>
       <RegisterModal isOpen={modalOpen} onClose={() => setModalOpen(false)} selectedEvent={selectedEvent} />
     </div>
   );

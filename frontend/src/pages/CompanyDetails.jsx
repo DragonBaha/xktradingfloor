@@ -4,6 +4,7 @@ import { useParams, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { getCompanyById } from "../controllers/companiesController.js";
 import ImageWithFallback from "../components/shared/ImageWithFallback.jsx";
+import CardLoader from "../components/shared/CardLoader.jsx";
 import { getReviewsByCompanyId } from "../controllers/reviewsController.js";
 import StarRating from "../components/reviews/StarRating.jsx";
 import CompanyReviewCard from "../components/reviews/CompanyReviewCard.jsx";
@@ -84,7 +85,7 @@ function CompanyDetails() {
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-10">
-        <div className="text-center text-gray-400">Loading...</div>
+        <CardLoader count={1} />
       </div>
     );
   }
@@ -113,7 +114,7 @@ function CompanyDetails() {
   const regularPromos = validPromoCodes.filter((p) => !p.featured);
 
   return (
-    <div className="bg-gray-950 text-white min-h-screen">
+    <div className="bg-black text-white min-h-screen">
       <Helmet>
         <title>{company.name} | XK Trading Floor</title>
         <meta
@@ -143,6 +144,7 @@ function CompanyDetails() {
                   fallback="/assets/placeholder.jpg"
                   alt={company.name}
                   className="h-full w-full object-cover"
+                  useDynamicFallback={true}
                 />
               </div>
               <div className="flex-1">
@@ -196,7 +198,8 @@ function CompanyDetails() {
                 {featuredPromos.map((promo) => (
                   <div
                     key={promo.id}
-                    className="p-4 rounded-lg bg-gradient-to-r from-green-500/20 to-green-600/20 border-2 border-green-500/50"
+                    className="p-4 rounded-lg bg-gray-900 border-2 border-gray-700"
+                    // className="p-4 rounded-lg bg-gradient-to-r from-green-500/20 to-green-600/20 border-2 border-green-500/50"
                   >
                     <div className="flex items-start justify-between gap-4 mb-2">
                       <div>

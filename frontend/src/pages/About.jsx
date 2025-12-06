@@ -53,7 +53,7 @@ function About() {
   }, []);
 
   return (
-    <div>
+    <div className="bg-black min-h-screen">
       <Helmet>
         <title>About | XK Trading Floor</title>
         <meta
@@ -77,8 +77,9 @@ function About() {
 
       <section
         id="mission"
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+        className="py-20 bg-black relative overflow-hidden"
       >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <SectionHeader
           title="Vision & Mission"
           subtitle="What drives us every day"
@@ -98,10 +99,12 @@ function About() {
           </InfoCard>
         </div>
         <AnimatedDivider />
+        </div>
       </section>
 
       {/* Founder Section - Professional Layout */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <section className="py-20 bg-black relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -147,9 +150,11 @@ function About() {
             </div>
           </div>
         </motion.div>
+        </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <section className="py-20 bg-black relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="card bg-gray-900/60 border border-border">
           <div className="card-body flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
@@ -166,6 +171,7 @@ function About() {
               Get Started
             </a>
           </div>
+        </div>
         </div>
       </section>
     </div>

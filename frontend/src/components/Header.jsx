@@ -154,14 +154,10 @@ function Header() {
           className="flex items-center gap-1.5 md:gap-2 transition-transform hover:scale-105 flex-shrink-0"
         >
           <img
-            src={getAssetPath("/assets/logo.png")}
+            src={getAssetPath("/assets/navbar logo.png")}
             alt="XK Trading Floor Logo"
-            className="h-10 w-8 md:h-14 md:w-10 rounded object-cover"
+            className="h-10 md:h-14 w-auto rounded object-contain"
           />
-          <span className="font-display font-extrabold text-white tracking-wide text-sm md:text-base lg:text-lg whitespace-nowrap">
-            <span className="hidden sm:inline">XK Trading Floor</span>
-            <span className="sm:hidden">XK TF</span>
-          </span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -401,6 +397,16 @@ function Header() {
                     )}
                     {(user?.role === "admin" || user?.role === "Admin") && (
                       <Link
+                        to="/admin/companies"
+                        onClick={() => setMenuOpen(false)}
+                        className="block px-4 py-3 text-sm text-gray-200 hover:bg-gray-800/50 transition-colors border-b border-gray-800"
+                        role="menuitem"
+                      >
+                        Manage Companies
+                      </Link>
+                    )}
+                    {(user?.role === "admin" || user?.role === "Admin") && (
+                      <Link
                         to="/admin/about/edit"
                         onClick={() => setMenuOpen(false)}
                         className="block px-4 py-3 text-sm text-gray-200 hover:bg-gray-800/50 transition-colors border-b border-gray-800"
@@ -596,6 +602,15 @@ function Header() {
                         className="px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
                       >
                         Manage Blogs
+                      </Link>
+                    )}
+                    {(user?.role === "admin" || user?.role === "Admin") && (
+                      <Link
+                        to="/admin/companies"
+                        onClick={() => setOpen(false)}
+                        className="px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
+                      >
+                        Manage Companies
                       </Link>
                     )}
                     {user?.role === "operator" && (

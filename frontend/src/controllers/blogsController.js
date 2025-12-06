@@ -1,10 +1,21 @@
+import api from "./api.js";
+
+// FORCE REAL DATA MODE - Mock functionality is hidden but code is kept for future use
+// Set to false to always use real data from database
+const FORCE_REAL_DATA_MODE = true;
+
 // Helper to check if mock mode is enabled
 // Backend endpoint: GET /api/public/settings/mock-mode
 async function isMockModeEnabled() {
+  // If force real data mode is enabled, always return false (use real data)
+  if (FORCE_REAL_DATA_MODE) {
+    return false;
+  }
+
   // Try to fetch from backend first
   try {
-    const { default: api } = await import("./api.js");
-    const response = await api.get("/settings/mock-mode");
+    const response = await api.get("/public/settings/mock-mode");
+    // Backend returns: { success: true, data: { enabled: boolean } }
     if (response?.data?.data?.enabled !== undefined) {
       const enabled = response.data.data.enabled;
       // Sync to localStorage for backward compatibility
@@ -26,27 +37,100 @@ async function isMockModeEnabled() {
   return false;
 }
 
-export async function getAllBlogs() {
+// Get all blogs
+// Backend endpoint: GET /api/admin/blogs/getallblogs
+// Query params: page, size, search
+// Body: { status } (optional)
+export async function getAllBlogs(filters = {}) {
   const mockMode = await isMockModeEnabled();
+  let backendBlogs = [];
 
-  // If mock mode is OFF, return empty array (no mock data)
-  if (!mockMode) {
-    return [];
+  // Always try to fetch from backend first
+  try {
+    const { page, size, search, status } = filters;
+    // Note: Backend reads status from req.body, but GET requests don't support body
+    // So we'll include status in query params (backend may not use it, but it's available)
+    const params = { page, size, search };
+    if (status) params.status = status;
+    const response = await api.get("/admin/blogs/getallblogs", { params });
+
+    // Backend returns: { success: true, data: { docs: [...], totalItems, currentPage, totalPages } }
+    if (response.data?.success && response.data?.data?.docs) {
+      // Transform backend format to frontend format
+      backendBlogs = response.data.data.docs.map((blog) => ({
+        ...blog,
+        id: blog._id || blog.id,
+      }));
+    } else if (Array.isArray(response.data?.data)) {
+      backendBlogs = response.data.data.map((blog) => ({
+        ...blog,
+        id: blog._id || blog.id,
+      }));
+    }
+  } catch (error) {
+    // If backend fails and mock mode is OFF, return empty array (no data)
+    if (!mockMode) {
+      if (error.response?.status === 401) {
+        // Unauthorized - user needs to login, but for public view, return empty
+        return [];
+      }
+      return [];
+    }
+    // If mock mode is ON and backend fails, we'll fall back to mock data
   }
 
-  // If mock mode is ON, return mock data
-  return import("../models/blogsData.js").then((m) => m.blogs);
+  // If mock mode is OFF, return only backend data
+  if (!mockMode) {
+    // Filter to show only published blogs for public view
+    return backendBlogs.filter(
+      (blog) => blog.status === "published" || blog.status === "Published"
+    );
+  }
+
+  // If mock mode is ON, return ONLY mock data (no merging with backend)
+  const { default: mockBlogs } = await import("../models/blogsData.js");
+  const allMockBlogs = mockBlogs || [];
+
+  return allMockBlogs;
 }
 
+// Get blog by ID
+// Backend endpoint: GET /api/admin/blogs/:blogid/getblogbyid
 export async function getBlogById(id) {
   const mockMode = await isMockModeEnabled();
 
-  // If mock mode is OFF, return null (no mock data)
-  if (!mockMode) {
-    return null;
+  // Always try backend first
+  try {
+    const response = await api.get(`/admin/blogs/${id}/getblogbyid`);
+
+    // Backend returns: { success: true, data: {...} }
+    if (response.data?.success && response.data?.data) {
+      const blog = response.data.data;
+      return {
+        ...blog,
+        id: blog._id || blog.id,
+      };
+    }
+    if (response.data?.data) {
+      return response.data.data;
+    }
+  } catch (error) {
+    // If backend fails and mock mode is OFF, return null (no data)
+    if (!mockMode) {
+      if (error.response?.status === 404) {
+        return null;
+      }
+      // For other errors, return null for public view
+      return null;
+    }
+    // If mock mode is ON and backend fails, fall back to mock data
   }
 
-  // If mock mode is ON, return mock data
-  const list = await import("../models/blogsData.js").then((m) => m.blogs);
-  return list.find((b) => b.id === parseInt(id));
+  // If mock mode is ON, try mock data
+  if (mockMode) {
+    const { default: blogs } = await import("../models/blogsData.js");
+    return blogs.find((b) => b.id === parseInt(id) || b._id === id) || null;
+  }
+
+  return null;
 }

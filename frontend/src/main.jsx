@@ -18,12 +18,18 @@ const basePath =
 // This ensures favicons work correctly across all deployment environments
 const updateFaviconLinks = () => {
   const faviconPath =
-    basePath + (basePath.endsWith("/") ? "" : "/") + "assets/favicon.jpg";
+    basePath + (basePath.endsWith("/") ? "" : "/") + "assets/favicon.png";
   ["favicon-32", "favicon-96", "favicon-192", "apple-touch-icon"].forEach(
     (id) => {
       const link = document.getElementById(id);
       if (link) {
         link.href = faviconPath;
+        if (link.type) link.type = "image/png";
+        // Update sizes for larger favicons (4x increase)
+        if (id === "favicon-32") link.sizes = "256x256";
+        if (id === "favicon-96") link.sizes = "512x512";
+        if (id === "favicon-192") link.sizes = "1024x1024";
+        if (id === "apple-touch-icon") link.sizes = "720x720";
       }
     }
   );

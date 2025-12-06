@@ -116,13 +116,19 @@ function CompanyForm() {
     setForm({ ...form, promoCodes: newPromos });
   }
 
-  if (!user || user.role !== 'admin') {
+  // Allow both admin and operator roles
+  const userRole = user?.role?.toLowerCase();
+  const isAdmin = userRole === 'admin' || userRole === 'subadmin';
+  const isOperator = userRole === 'operator';
+  const canAccess = isAdmin || isOperator;
+
+  if (!user || !canAccess) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="card">
           <div className="card-body text-center">
             <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
-            <p className="text-gray-400 mb-4">Only administrators can manage companies from this page.</p>
+            <p className="text-gray-400 mb-4">Only administrators and operators can manage companies from this page.</p>
             <Link to="/" className="btn btn-primary">
               Go Home
             </Link>
@@ -141,7 +147,7 @@ function CompanyForm() {
   }
 
   return (
-    <ProtectedRoute role="admin">
+    <ProtectedRoute role={isAdmin ? "admin" : "operator"}>
       <div className="bg-gray-950 text-white min-h-screen">
         <Helmet>
           <title>{isEdit ? 'Edit Company' : 'Create Company'} | XK Trading Floor</title>

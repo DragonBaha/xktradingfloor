@@ -6,10 +6,10 @@ import { getAssetPath } from '../../utils/assets.js';
 
 function HeroSection() {
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-gray-950">
+    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-black">
       {/* Animated background gradients */}
-      <div className="absolute inset-0 bg-gradient-to-b from-gray-950 via-gray-950 to-gray-950" />
-      <motion.div
+      {/* <div className="absolute inset-0 bg-gradient-to-b from-black via-black to-black" /> */}
+      {/* <motion.div
         animate={{
           scale: [1, 1.2, 1],
           opacity: [0.3, 0.5, 0.3],
@@ -20,8 +20,8 @@ function HeroSection() {
           ease: "easeInOut"
         }}
         className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl"
-      />
-      <motion.div
+      /> */}
+      {/* <motion.div
         animate={{
           scale: [1, 1.3, 1],
           opacity: [0.3, 0.5, 0.3],
@@ -33,8 +33,8 @@ function HeroSection() {
           delay: 2
         }}
         className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-purple-500/10 blur-3xl"
-      />
-      <motion.div
+      /> */}
+      {/* <motion.div
         animate={{
           scale: [1, 1.1, 1],
           opacity: [0.2, 0.4, 0.2],
@@ -46,7 +46,7 @@ function HeroSection() {
           delay: 4
         }}
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-green-500/5 blur-3xl"
-      />
+      /> */}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
         <motion.div

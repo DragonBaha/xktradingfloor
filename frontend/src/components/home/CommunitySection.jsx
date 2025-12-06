@@ -6,12 +6,12 @@ import ImageWithFallback from '../shared/ImageWithFallback.jsx';
 
 function CommunitySection() {
   return (
-    <section className="py-20 bg-gray-950 relative overflow-hidden">
+    <section className="py-20 bg-black relative overflow-hidden">
       {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 right-0 w-96 h-96 bg-green-500/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-1/4 left-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
-      </div>
+      </div> */}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -21,23 +21,28 @@ function CommunitySection() {
             viewport={{ once: true, margin: '-100px' }}
             transition={{ duration: 0.8 }}
           >
-            <motion.div
-              initial={{ scale: 0.9 }}
-              whileInView={{ scale: 1 }}
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-blue-500/10 backdrop-blur-sm mb-6"
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight mb-6 leading-tight"
             >
-              <MessageCircle className="h-5 w-5 text-blue-400" />
-              <h2 className="text-xl font-semibold text-blue-400">Community</h2>
-            </motion.div>
-            <p className="text-gray-300 text-lg sm:text-xl leading-relaxed mb-8">
+              Join Our <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent">Trading Community</span>
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="text-xl sm:text-2xl text-gray-300 font-medium mb-8"
+            >
               Looking for a community of traders which can help you understand more about trading 
               not just technical but also fundamental and free? Our non-toxic and friendly atmosphere 
               makes us the perfect choice for anyone looking to trade forex in a supportive and 
               collaborative environment.
-            </p>
-            <Link to="/academy" className="btn rounded-full bg-blue-500 hover:bg-blue-600 text-white border-2 border-blue-500 hover:border-blue-600 hover:scale-105 transition-all shadow-lg shadow-blue-500/20">
+            </motion.p>
+            <Link to="/academy" className="btn inline-flex items-center justify-center rounded-full bg-white text-gray-900 hover:bg-gray-100 border-2 border-white hover:scale-105 transition-all shadow-lg px-6 py-3 font-medium">
               Join Now
             </Link>
           </motion.div>
@@ -49,7 +54,7 @@ function CommunitySection() {
             className="relative"
           >
             {/* Seamless glow effect */}
-            <motion.div
+            {/* <motion.div
               animate={{
                 opacity: [0.3, 0.5, 0.3],
                 scale: [1, 1.05, 1]
@@ -60,7 +65,7 @@ function CommunitySection() {
                 ease: "easeInOut"
               }}
               className="absolute -inset-4 bg-gradient-to-r from-blue-500/30 via-purple-500/30 to-blue-500/30 rounded-3xl blur-2xl -z-10"
-            />
+            /> */}
             <div className="relative rounded-2xl overflow-hidden border border-gray-800 shadow-2xl">
               <ImageWithFallback
                 src="/assets/community_trading.jpg"

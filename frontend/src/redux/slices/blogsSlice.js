@@ -105,8 +105,11 @@ export const fetchBlogById = createAsyncThunk(
       // Backend route: GET /api/admin/blogs/:blogid/getblogbyid
       // Ensure blogId is properly encoded in URL
       const encodedBlogId = encodeURIComponent(blogId);
-      const response = await api.get(`/admin/blogs/${encodedBlogId}/getblogbyid`, config);
-      
+      const response = await api.get(
+        `/admin/blogs/${encodedBlogId}/getblogbyid`,
+        config
+      );
+
       // Backend returns: { success: true, data: {...} }
       return response.data?.data || response.data;
     } catch (error) {
@@ -120,11 +123,9 @@ export const fetchBlogById = createAsyncThunk(
       if (error.response?.status === 403) {
         return rejectWithValue("You don't have permission to view this blog.");
       }
-      
+
       return rejectWithValue(
-        error.response?.data?.message || 
-        error.message || 
-        "Failed to fetch blog"
+        error.response?.data?.message || error.message || "Failed to fetch blog"
       );
     }
   }
@@ -191,7 +192,7 @@ export const updateBlog = createAsyncThunk(
         formData,
         config
       );
-      
+
       // Backend returns: { success: true, message: "...", data: {...} }
       return response.data?.data || response.data;
     } catch (error) {
@@ -203,18 +204,20 @@ export const updateBlog = createAsyncThunk(
         return rejectWithValue("Unauthorized. Please log in again.");
       }
       if (error.response?.status === 403) {
-        return rejectWithValue("You don't have permission to update this blog.");
+        return rejectWithValue(
+          "You don't have permission to update this blog."
+        );
       }
       if (error.response?.status === 400) {
         return rejectWithValue(
           error.response?.data?.message || "Invalid data provided"
         );
       }
-      
+
       return rejectWithValue(
-        error.response?.data?.message || 
-        error.message || 
-        "Failed to update blog"
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to update blog"
       );
     }
   }
@@ -244,8 +247,11 @@ export const deleteBlog = createAsyncThunk(
       // Backend route: DELETE /api/admin/blogs/:blogid/deleteblog
       // Ensure blogId is properly encoded in URL
       const encodedBlogId = encodeURIComponent(blogId);
-      const response = await api.delete(`/admin/blogs/${encodedBlogId}/deleteblog`, config);
-      
+      const response = await api.delete(
+        `/admin/blogs/${encodedBlogId}/deleteblog`,
+        config
+      );
+
       // Backend returns: { success: true, message: "Blog post deleted successfully" }
       return { blogId, data: response.data };
     } catch (error) {
@@ -257,13 +263,15 @@ export const deleteBlog = createAsyncThunk(
         return rejectWithValue("Unauthorized. Please log in again.");
       }
       if (error.response?.status === 403) {
-        return rejectWithValue("You don't have permission to delete this blog.");
+        return rejectWithValue(
+          "You don't have permission to delete this blog."
+        );
       }
-      
+
       return rejectWithValue(
-        error.response?.data?.message || 
-        error.message || 
-        "Failed to delete blog"
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to delete blog"
       );
     }
   }
@@ -296,7 +304,7 @@ export const permanentDeleteBlog = createAsyncThunk(
         `/admin/blogs/${encodedBlogId}/permanentdeleteblog`,
         config
       );
-      
+
       // Backend returns: { success: true, message: "Blog post permanently deleted" }
       return { blogId, data: response.data };
     } catch (error) {
@@ -308,13 +316,15 @@ export const permanentDeleteBlog = createAsyncThunk(
         return rejectWithValue("Unauthorized. Please log in again.");
       }
       if (error.response?.status === 403) {
-        return rejectWithValue("You don't have permission to permanently delete this blog.");
+        return rejectWithValue(
+          "You don't have permission to permanently delete this blog."
+        );
       }
-      
+
       return rejectWithValue(
-        error.response?.data?.message || 
-        error.message || 
-        "Failed to permanently delete blog"
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to permanently delete blog"
       );
     }
   }
@@ -425,71 +435,150 @@ export const fetchOperatorBlogs = createAsyncThunk(
 export const fetchPublishedBlogs = createAsyncThunk(
   "blogs/fetchPublished",
   async (
-    { page = 1, limit = 100, category = "", tag = "", search = "", featured = "" } = {},
+    {
+      page = 1,
+      limit = 100,
+      category = "",
+      tag = "",
+      search = "",
+      featured = "",
+    } = {},
     { rejectWithValue }
   ) => {
+    // Helper to check if user is authenticated
+    const token = getAuthToken();
+    const isAuthenticated = !!token;
+
+    // Try public endpoint first (works for everyone)
     try {
-      const token = getAuthToken();
-      const config = {
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-        params: { page, size: limit, search, status: "published" },
+      const publicConfig = {
+        params: { page, limit, category, tag, search, featured },
       };
+      const publicResponse = await api.get("/public/blogs", publicConfig);
 
-      // Use admin endpoint with published status filter
-      // Backend route: GET /admin/blogs/getallblogs
-      const response = await api.get("/admin/blogs/getallblogs", config);
-
-      // Filter by category, tag, and featured on frontend if backend doesn't support it
-      let blogs = response.data?.data || response.data?.blogs || [];
-      
-      if (category) {
-        blogs = blogs.filter((blog) => {
-          const blogCategories = Array.isArray(blog.categories) ? blog.categories : [blog.categories || blog.category].filter(Boolean);
-          return blogCategories.some((cat) => cat === category);
-        });
-      }
-      
-      if (tag) {
-        blogs = blogs.filter((blog) => {
-          const blogTags = Array.isArray(blog.tags) ? blog.tags : [];
-          return blogTags.some((t) => t.toLowerCase() === tag.toLowerCase());
-        });
-      }
-      
-      if (featured === "true" || featured === true) {
-        blogs = blogs.filter((blog) => blog.isFeatured === true);
-      }
-
-      return {
-        data: blogs,
-        pagination: response.data?.pagination || {
-          page: 1,
-          totalPages: 1,
-          totalItems: blogs.length,
-        },
-      };
-    } catch (error) {
-      // Handle connection refused gracefully
       if (
-        error.code === "ERR_NETWORK" ||
-        error.message?.includes("ERR_CONNECTION_REFUSED") ||
-        error.code === "ECONNREFUSED"
+        publicResponse.data?.data &&
+        Array.isArray(publicResponse.data.data)
       ) {
-        return rejectWithValue(
-          "Backend server is not running. Please start the backend server or contact support."
-        );
+        return {
+          data: publicResponse.data.data,
+          pagination: publicResponse.data?.pagination || {
+            page: 1,
+            totalPages: 1,
+            totalItems: publicResponse.data.data.length,
+          },
+        };
       }
-      // If 404 or auth error, return empty array (user might not be logged in)
-      if (error.response?.status === 404 || error.response?.status === 401) {
-        return { data: [], pagination: { page: 1, totalPages: 1, totalItems: 0 } };
+    } catch (publicError) {
+      // If public endpoint fails and user is not authenticated, return empty array
+      // Don't try admin endpoint for unauthenticated users (will always fail with 403)
+      if (!isAuthenticated) {
+        return {
+          data: [],
+          pagination: { page: 1, totalPages: 1, totalItems: 0 },
+        };
       }
-      return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch published blogs"
-      );
+      // For authenticated users, continue to try admin endpoint as fallback
     }
+
+    // Fallback to admin endpoint (only for authenticated users)
+    if (isAuthenticated) {
+      try {
+        const config = {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          params: { page, size: limit, search, status: "published" },
+        };
+
+        // Use admin endpoint with published status filter
+        // Backend route: GET /admin/blogs/getallblogs
+        const response = await api.get("/admin/blogs/getallblogs", config);
+
+        // Handle different response structures
+        let blogs = [];
+        if (response.data?.success && response.data?.data?.docs) {
+          blogs = response.data.data.docs;
+        } else if (Array.isArray(response.data?.data)) {
+          blogs = response.data.data;
+        } else if (Array.isArray(response.data?.blogs)) {
+          blogs = response.data.blogs;
+        } else if (Array.isArray(response.data)) {
+          blogs = response.data;
+        }
+
+        // Filter to only published blogs
+        blogs = blogs.filter(
+          (blog) => blog.status === "published" || blog.status === "Published"
+        );
+
+        // Filter by category, tag, and featured on frontend if backend doesn't support it
+        if (category) {
+          blogs = blogs.filter((blog) => {
+            const blogCategories = Array.isArray(blog.categories)
+              ? blog.categories
+              : [blog.categories || blog.category].filter(Boolean);
+            return blogCategories.some((cat) => cat === category);
+          });
+        }
+
+        if (tag) {
+          blogs = blogs.filter((blog) => {
+            const blogTags = Array.isArray(blog.tags) ? blog.tags : [];
+            return blogTags.some((t) => t.toLowerCase() === tag.toLowerCase());
+          });
+        }
+
+        if (featured === "true" || featured === true) {
+          blogs = blogs.filter((blog) => blog.isFeatured === true);
+        }
+
+        return {
+          data: blogs,
+          pagination: response.data?.pagination ||
+            response.data?.data?.pagination || {
+              page: 1,
+              totalPages: 1,
+              totalItems: blogs.length,
+            },
+        };
+      } catch (error) {
+        // Handle connection refused gracefully
+        if (
+          error.code === "ERR_NETWORK" ||
+          error.message?.includes("ERR_CONNECTION_REFUSED") ||
+          error.code === "ECONNREFUSED"
+        ) {
+          // Return empty array instead of rejecting - allows page to render
+          return {
+            data: [],
+            pagination: { page: 1, totalPages: 1, totalItems: 0 },
+          };
+        }
+        // If 404, 401, or 403 (endpoint doesn't exist or user not authorized), return empty array
+        // This is expected behavior for non-admin users when public endpoints don't exist
+        if (
+          error.response?.status === 404 ||
+          error.response?.status === 401 ||
+          error.response?.status === 403
+        ) {
+          // Silently return empty array - this is expected for non-admin users
+          return {
+            data: [],
+            pagination: { page: 1, totalPages: 1, totalItems: 0 },
+          };
+        }
+        // For other errors, also return empty array to prevent page breakage
+        return {
+          data: [],
+          pagination: { page: 1, totalPages: 1, totalItems: 0 },
+        };
+      }
+    }
+
+    // If we get here and user is not authenticated, return empty array
+    return { data: [], pagination: { page: 1, totalPages: 1, totalItems: 0 } };
   }
 );
 
@@ -523,7 +612,8 @@ export const flagBlog = createAsyncThunk(
         other: "Other",
       };
 
-      const backendReason = flagReasonMap[flagType] || flagReasonMap[reason] || "Other";
+      const backendReason =
+        flagReasonMap[flagType] || flagReasonMap[reason] || "Other";
 
       // Backend route: PUT /api/admin/blogs/:blogid/updateblog
       // Use update endpoint with flagReason field
@@ -536,7 +626,7 @@ export const flagBlog = createAsyncThunk(
         },
         config
       );
-      
+
       // Backend returns: { success: true, message: "...", data: {...} }
       return { blogId, data: response.data?.data || response.data };
     } catch (error) {
@@ -555,11 +645,9 @@ export const flagBlog = createAsyncThunk(
           error.response?.data?.message || "Invalid flag reason provided"
         );
       }
-      
+
       return rejectWithValue(
-        error.response?.data?.message || 
-        error.message || 
-        "Failed to flag blog"
+        error.response?.data?.message || error.message || "Failed to flag blog"
       );
     }
   }
@@ -597,7 +685,7 @@ export const unflagBlog = createAsyncThunk(
         },
         config
       );
-      
+
       // Backend returns: { success: true, message: "...", data: {...} }
       return { blogId, data: response.data?.data || response.data };
     } catch (error) {
@@ -609,13 +697,15 @@ export const unflagBlog = createAsyncThunk(
         return rejectWithValue("Unauthorized. Please log in again.");
       }
       if (error.response?.status === 403) {
-        return rejectWithValue("You don't have permission to unflag this blog.");
+        return rejectWithValue(
+          "You don't have permission to unflag this blog."
+        );
       }
-      
+
       return rejectWithValue(
-        error.response?.data?.message || 
-        error.message || 
-        "Failed to unflag blog"
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to unflag blog"
       );
     }
   }
@@ -713,11 +803,17 @@ const blogsSlice = createSlice({
         // Backend returns: { success: true, message: "...", data: {...} }
         const updatedBlog = action.payload.data || action.payload;
         if (updatedBlog) {
-          const index = state.blogs.findIndex((b) => b._id === updatedBlog._id || b.id === updatedBlog._id);
+          const index = state.blogs.findIndex(
+            (b) => b._id === updatedBlog._id || b.id === updatedBlog._id
+          );
           if (index !== -1) {
             state.blogs[index] = updatedBlog;
           }
-          if (state.currentBlog && (state.currentBlog._id === updatedBlog._id || state.currentBlog.id === updatedBlog._id)) {
+          if (
+            state.currentBlog &&
+            (state.currentBlog._id === updatedBlog._id ||
+              state.currentBlog.id === updatedBlog._id)
+          ) {
             state.currentBlog = updatedBlog;
           }
         }
@@ -738,7 +834,10 @@ const blogsSlice = createSlice({
         state.blogs = state.blogs.filter(
           (b) => b._id !== blogId && b.id !== blogId
         );
-        if (state.currentBlog && (state.currentBlog._id === blogId || state.currentBlog.id === blogId)) {
+        if (
+          state.currentBlog &&
+          (state.currentBlog._id === blogId || state.currentBlog.id === blogId)
+        ) {
           state.currentBlog = null;
         }
       })
@@ -755,11 +854,12 @@ const blogsSlice = createSlice({
         state.loading = false;
         // Remove blog from state completely
         const blogId = action.payload.blogId;
-        state.blogs = state.blogs.filter(
-          (b) => (b._id || b.id) !== blogId
-        );
+        state.blogs = state.blogs.filter((b) => (b._id || b.id) !== blogId);
         // Clear current blog if it was deleted
-        if (state.currentBlog && (state.currentBlog._id === blogId || state.currentBlog.id === blogId)) {
+        if (
+          state.currentBlog &&
+          (state.currentBlog._id === blogId || state.currentBlog.id === blogId)
+        ) {
           state.currentBlog = null;
         }
       })
@@ -840,9 +940,12 @@ const blogsSlice = createSlice({
         }
         if (payload.pagination) {
           state.pagination = {
-            currentPage: payload.pagination.page || payload.pagination.currentPage || 1,
-            totalPages: payload.pagination.pages || payload.pagination.totalPages || 1,
-            totalItems: payload.pagination.total || payload.pagination.totalItems || 0,
+            currentPage:
+              payload.pagination.page || payload.pagination.currentPage || 1,
+            totalPages:
+              payload.pagination.pages || payload.pagination.totalPages || 1,
+            totalItems:
+              payload.pagination.total || payload.pagination.totalItems || 0,
           };
         }
       })

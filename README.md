@@ -42,6 +42,36 @@ xktradingfloor/
 
 XK Trading Floor is a modern full-stack web application designed to empower traders through education, data, and community. The platform provides a complete ecosystem for traders to learn, review trading companies, access educational resources, and connect with a supportive trading community.
 
+### 📊 Project Status Summary
+
+**✅ Fully Implemented:**
+
+- Authentication system (signup, login, password update, user reactivation)
+- Blog management (full CRUD for admins, public API for published blogs)
+- Company management (create, read, public API for approved companies)
+- Review management (create, read by user, delete)
+- Settings management (mock mode toggle)
+- File upload system (Cloudflare R2 integration)
+- Frontend UI/UX (all pages and components)
+- Protected routes with role-based access
+- Redux state management
+- Rich text editor integration
+
+**🔄 Partially Implemented:**
+
+- Company management (update/delete controllers ready, routes missing)
+- Review system (public submission endpoint pending)
+- Promo code management (controllers ready, routes missing)
+
+**⚠️ Pending Implementation:**
+
+- Events, Products, Podcasts, Courses APIs (controllers exist, routes commented)
+- Protected user endpoints (profile management, etc.)
+- Dashboard statistics endpoints
+- Password reset flow (controllers exist, routes commented)
+- Comment system for blogs
+- Slug-based blog routing (slug field commented in model)
+
 ### Key Features
 
 - **🏠 Home Page**: Engaging hero section, community information, featured events, and "How It Works" guide
@@ -56,13 +86,15 @@ XK Trading Floor is a modern full-stack web application designed to empower trad
 
 ### Admin Panel Features
 
-- **📊 Enhanced Admin Dashboard**: 
+- **📊 Enhanced Admin Dashboard**:
+
   - Dynamic charts and visualizations (Companies over time, Reviews over time, Rating distribution, Company status breakdown)
   - Mock data toggle for testing and development
   - Real-time statistics and metrics
   - Beautiful gradient cards with icons and animations
 
 - **📝 Blog Management**:
+
   - Rich text editor (WYSIWYG) with formatting toolbar (bold, italic, underline, lists, links, etc.)
   - Fixed category dropdown (Trading, Stocks, Forex, Crypto, Options, Personal Finance, Technical Analysis, Market News)
   - Chip-based tag input (comma-separated, visual chips)
@@ -73,6 +105,7 @@ XK Trading Floor is a modern full-stack web application designed to empower trad
   - Removed Purge option (consolidated with Delete)
 
 - **🏢 Company Management**:
+
   - Full company management interface (similar to blog management)
   - Rich text editor for full descriptions
   - Character-limited short description (max 150 characters)
@@ -80,6 +113,7 @@ XK Trading Floor is a modern full-stack web application designed to empower trad
   - Custom confirmation modals
 
 - **📄 About Page Editor**:
+
   - Admin-only editable About section
   - Rich text editor for founder description
   - Profile image upload
@@ -98,6 +132,7 @@ XK Trading Floor is a modern full-stack web application designed to empower trad
 ### Managing Blogs
 
 1. **Creating a Blog Post**:
+
    - Navigate to `/admin/blogs` and click "Create New Blog"
    - Fill in the title (required)
    - Write a summary (minimum 20 characters recommended)
@@ -115,12 +150,14 @@ XK Trading Floor is a modern full-stack web application designed to empower trad
    - Click "Save blog"
 
 2. **Editing a Blog Post**:
+
    - Go to `/admin/blogs`
    - Click "Edit" on any blog post
    - The rich text editor will load existing content (not raw HTML)
    - Make changes and save
 
 3. **Flagging a Blog Post**:
+
    - Click "Flag" on any blog post
    - Select a reason from dropdown (Spam, Inappropriate, Misinformation, Duplicate Content, Other)
    - Optionally add additional details
@@ -133,6 +170,7 @@ XK Trading Floor is a modern full-stack web application designed to empower trad
 ### Managing Companies
 
 1. **Creating a Company**:
+
    - Navigate to `/admin/companies` and click "Add Company"
    - Fill in company name, category, and website
    - Upload company logo
@@ -143,6 +181,7 @@ XK Trading Floor is a modern full-stack web application designed to empower trad
    - Save
 
 2. **Editing a Company**:
+
    - Go to `/admin/companies`
    - Click "Edit" on any company
    - Make changes and save
@@ -155,11 +194,13 @@ XK Trading Floor is a modern full-stack web application designed to empower trad
 ### Editing About Page
 
 1. **Accessing the Editor**:
+
    - Log in as admin
    - Click on your profile dropdown in the header
    - Select "Edit About Section"
 
 2. **Editing Founder Information**:
+
    - Update name and designation
    - Upload new profile image
    - Edit description using rich text editor
@@ -172,6 +213,7 @@ XK Trading Floor is a modern full-stack web application designed to empower trad
 ### Using the Rich Text Editor
 
 The rich text editor (React Quill) provides:
+
 - **Formatting Toolbar**: Bold, italic, underline, strikethrough
 - **Headers**: H1, H2, H3
 - **Lists**: Ordered and unordered
@@ -184,11 +226,13 @@ The rich text editor (React Quill) provides:
 ### Using Chip Inputs (Tags & SEO Keywords)
 
 1. **Adding Tags/Keywords**:
+
    - Type your tag/keyword
    - Press comma (`,`) or Enter
    - The tag becomes a visual chip below the input
 
 2. **Removing Tags/Keywords**:
+
    - Click the X icon on any chip
    - Or press Backspace when input is empty to remove the last chip
 
@@ -200,6 +244,7 @@ The rich text editor (React Quill) provides:
 ### Admin Dashboard
 
 1. **Mock Data Toggle**:
+
    - Toggle ON: Shows mock data + real API data
    - Toggle OFF: Shows only real API data
    - Useful for testing and development
@@ -223,6 +268,7 @@ The rich text editor (React Quill) provides:
 **Required Backend Changes** (for production):
 
 1. **About Page Storage**:
+
    - Currently uses localStorage
    - Backend should provide:
      - `GET /api/admin/about` - Get about page data
@@ -230,10 +276,12 @@ The rich text editor (React Quill) provides:
    - Store: name, designation, description (HTML), image URL
 
 2. **Blog Flagging**:
+
    - Backend should accept flag reason and description
    - Store flags with metadata (who flagged, when, reason, description)
 
 3. **Category Management**:
+
    - Categories are currently hardcoded in frontend
    - Backend could provide category list if dynamic categories are needed
 
@@ -293,9 +341,15 @@ The rich text editor (React Quill) provides:
 - **Express-useragent 1.0.15** - User agent parsing
 - **@sendgrid/mail 8.1.4** - Email service integration
 - **@sentry/node 10.11.0** - Error tracking and monitoring
-- **AWS SDK 2.1692.0 & @aws-sdk/client-s3 3.937.0** - Cloudflare R2 (S3-compatible) file storage integration
+- **@sentry/profiling-node 10.11.0** - Performance profiling
+- **@sentry/tracing 7.120.4** - Performance tracing
+- **AWS SDK 2.1692.0** - AWS SDK (for S3/R2 compatibility)
+- **@aws-sdk/client-s3 3.937.0** - S3 client for Cloudflare R2
+- **@aws-sdk/s3-request-presigner 3.937.0** - Presigned URL generation
 - **Multer 2.0.2** - File upload handling
 - **Day.js 1.11.19** - Date manipulation library
+- **EJS 3.1.10** - Template engine (for error pages)
+- **Http-errors 1.6.3** - HTTP error handling
 
 **Development:**
 
@@ -309,29 +363,116 @@ The rich text editor (React Quill) provides:
 ```
 frontend/src/
 ├── components/          # Reusable React components
-│   ├── academy/        # Academy components (EventsGrid, FreeResources, PodcastSection, RegisterModal)
-│   ├── blog/           # Blog components (BlogCard, BlogList, BlogSearch, BlogCategories, BlogSidebar)
-│   ├── dashboard/      # Dashboard components (ActivityChart, OverviewCard, PieChartWidget, ProtectedRoute)
-│   ├── home/           # Home page components (HeroSection, FeaturedEvents, LatestBlogs, etc.)
-│   ├── merch/          # Merchandise components (ProductCard, ProductGrid, CartSidebar, etc.)
-│   ├── reviews/        # Review system components (ReviewCard, CompanyCard, RatingFilter, etc.)
-│   ├── shared/         # Shared components (ImageWithFallback, SectionHeader, etc.)
-│   ├── ui/             # UI components (Cards)
+│   ├── academy/        # Academy components
+│   │   ├── EventsGrid.jsx
+│   │   ├── FreeResources.jsx
+│   │   ├── HeroAcademy.jsx
+│   │   ├── PodcastSection.jsx
+│   │   └── RegisterModal.jsx
+│   ├── admin/          # Admin-specific components
+│   │   ├── blog/
+│   │   │   ├── BlogForm.jsx
+│   │   │   ├── BlogList.jsx
+│   │   │   └── index.js
+│   │   └── companies/
+│   │       └── CompanyForm.jsx
+│   ├── blog/           # Blog components
+│   │   ├── BlogAuthorInfo.jsx
+│   │   ├── BlogCard.jsx
+│   │   ├── BlogCategories.jsx
+│   │   ├── BlogHero.jsx
+│   │   ├── BlogList.jsx
+│   │   ├── BlogSearch.jsx
+│   │   └── BlogSidebar.jsx
+│   ├── dashboard/      # Dashboard components
+│   │   ├── ActivityChart.jsx
+│   │   ├── OverviewCard.jsx
+│   │   ├── PieChartWidget.jsx
+│   │   ├── ProtectedRoute.jsx
+│   │   ├── QuickActions.jsx
+│   │   └── RecentActivity.jsx
+│   ├── home/           # Home page components
+│   │   ├── AboutIntro.jsx
+│   │   ├── CommunitySection.jsx
+│   │   ├── CTASection.jsx
+│   │   ├── FeaturedEvents.jsx
+│   │   ├── FeaturesQuadrantSection.jsx
+│   │   ├── FreebiesSection.jsx
+│   │   ├── HeroSection.jsx
+│   │   ├── HowItWorks.jsx
+│   │   ├── LatestBlogs.jsx
+│   │   ├── MerchPreview.jsx
+│   │   ├── MissionResourcesSection.jsx
+│   │   ├── PodcastSection.jsx
+│   │   ├── PodcastSponsorSection.jsx
+│   │   ├── PreferredBroker.jsx
+│   │   ├── ReviewsCarousel.jsx
+│   │   └── WhatIsXK.jsx
+│   ├── merch/          # Merchandise components
+│   │   ├── CartItem.jsx
+│   │   ├── CartSidebar.jsx
+│   │   ├── EmptyCart.jsx
+│   │   ├── MerchHero.jsx
+│   │   ├── ProductCard.jsx
+│   │   ├── ProductDetailsView.jsx
+│   │   ├── ProductFilter.jsx
+│   │   └── ProductGrid.jsx
+│   ├── reviews/         # Review system components
+│   │   ├── CompanyCard.jsx
+│   │   ├── CompanyFilters.jsx
+│   │   ├── CompanyReviewCard.jsx
+│   │   ├── CompanyReviewForm.jsx
+│   │   ├── EmptyReviews.jsx
+│   │   ├── Pagination.jsx
+│   │   ├── RatingBreakdownChart.jsx
+│   │   ├── RatingFilter.jsx
+│   │   ├── ReviewCard.jsx
+│   │   ├── ReviewForm.jsx
+│   │   ├── ReviewsHero.jsx
+│   │   ├── ReviewsList.jsx
+│   │   ├── StarRating.jsx
+│   │   └── WriteToUsModal.jsx
+│   ├── shared/         # Shared components
+│   │   ├── AnimatedDivider.jsx
+│   │   ├── CardLoader.jsx
+│   │   ├── ChipInput.jsx
+│   │   ├── ConfirmModal.jsx
+│   │   ├── FlagModal.jsx
+│   │   ├── HeroSection.jsx
+│   │   ├── ImageWithFallback.jsx
+│   │   ├── InfoCard.jsx
+│   │   ├── motionVariants.js
+│   │   ├── RichTextEditor.jsx
+│   │   └── SectionHeader.jsx
+│   ├── ui/             # UI components
+│   │   └── Cards.jsx
 │   ├── Header.jsx      # Main navigation header
 │   └── Footer.jsx      # Footer component
-├── controllers/        # API controllers (currently using mock data)
+├── controllers/        # API controllers (real API with mock fallback)
 │   ├── api.js          # Axios instance configuration
 │   ├── authController.js
 │   ├── blogsController.js
 │   ├── companiesController.js
+│   ├── contentController.js
+│   ├── dashboardController.js
 │   ├── eventsController.js
+│   ├── freebiesController.js
+│   ├── podcastsController.js
 │   ├── productsController.js
-│   └── ...
+│   └── reviewsController.js
 ├── models/             # Mock data (JSON/JS files)
+│   ├── blogPosts.json
 │   ├── blogsData.js
+│   ├── companies.json
+│   ├── dashboardData.js
+│   ├── events.json
 │   ├── eventsData.js
+│   ├── freebiesData.js
+│   ├── podcastsData.js
+│   ├── products.json
 │   ├── productsData.js
-│   └── ...
+│   ├── reviews.json
+│   └── reviewsData.js
 ├── pages/              # Page components (routes)
 │   ├── Home.jsx
 │   ├── Academy.jsx
@@ -347,17 +488,22 @@ frontend/src/
 │   └── ...
 ├── redux/              # Redux state management
 │   ├── slices/
+│   │   ├── analyticsSlice.js # Analytics state
 │   │   ├── authSlice.js      # Authentication state
+│   │   ├── blogsSlice.js     # Blog state
 │   │   ├── cartSlice.js      # Shopping cart state
-│   │   └── analyticsSlice.js # Analytics state
+│   │   └── mockSlice.js      # Mock mode state
 │   └── store.js        # Redux store configuration
 ├── routes/
 │   └── Router.jsx      # React Router configuration
 ├── styles/
-│   └── globals.css     # Global styles
+│   └── globals.css     # Global styles (Note: main styles in index.css)
 ├── utils/              # Utility functions
 │   ├── assets.js       # Asset path utilities
 │   └── cookies.js      # Cookie management
+├── index.css           # Main CSS file with Tailwind imports
+├── App.jsx             # Main App component
+└── main.jsx            # Application entry point
 ├── App.jsx             # Main App component
 └── main.jsx            # Application entry point
 ```
@@ -398,7 +544,8 @@ backend/
 │   └── file-upload.middleware.js     # File upload handling with Multer
 ├── helpers/
 │   ├── email.helper.js     # Email service helper (SendGrid integration)
-│   └── s3.helper.js         # AWS S3 file storage operations
+│   ├── r2.helper.js        # Cloudflare R2 file storage operations (currently used)
+│   └── s3.helper.js         # AWS S3 file storage operations (alternative, not currently used)
 ├── utils/
 │   ├── database.js         # MongoDB connection setup
 │   ├── environment.js      # Environment variable configuration
@@ -517,6 +664,69 @@ Frontend will be available at `http://localhost:5173` (default Vite port).
 
 **Note:** Both servers need to be running simultaneously for full functionality.
 
+## 🗺️ Frontend Routes
+
+The application uses React Router for client-side routing. All routes are defined in `frontend/src/routes/Router.jsx`:
+
+### Public Routes (No Authentication Required)
+
+| Route                 | Component        | Description                                            |
+| --------------------- | ---------------- | ------------------------------------------------------ |
+| `/`                   | `Home`           | Landing page with hero, featured content, and sections |
+| `/academy`            | `Academy`        | Academy page with events, resources, and podcasts      |
+| `/events/:eventId`    | `EventDetails`   | Individual event details page                          |
+| `/blog`               | `Blog`           | Blog listing page with search and filters              |
+| `/blog/:id`           | `BlogPost`       | Individual blog post page                              |
+| `/reviews`            | `Reviews`        | Company reviews listing (all categories)               |
+| `/reviews/broker`     | `Reviews`        | Broker reviews listing                                 |
+| `/reviews/propfirm`   | `Reviews`        | Prop firm reviews listing                              |
+| `/reviews/crypto`     | `Reviews`        | Crypto exchange reviews listing                        |
+| `/reviews/:companyId` | `CompanyDetails` | Individual company details with reviews                |
+| `/merch`              | `Merch`          | Merchandise/product catalog                            |
+| `/merch/:productId`   | `ProductDetails` | Individual product details page                        |
+| `/signup`             | `Signup`         | User registration page                                 |
+| `/login`              | `Login`          | User login page                                        |
+| `/about`              | `About`          | About page with founder information                    |
+| `/contact`            | `Contact`        | Contact page                                           |
+
+### Protected Routes (Authentication Required)
+
+| Route                 | Component   | Description           | Role                    |
+| --------------------- | ----------- | --------------------- | ----------------------- |
+| `/dashboard`          | `Dashboard` | User dashboard        | All authenticated users |
+| `/profile`            | `Profile`   | User profile page     | All authenticated users |
+| `/blogs/my-blogs`     | `MyBlogs`   | User's own blog posts | All authenticated users |
+| `/blogs/create`       | `BlogForm`  | Create blog post      | All authenticated users |
+| `/blogs/edit/:blogId` | `BlogForm`  | Edit blog post        | All authenticated users |
+
+### Operator Routes (Operator Role Required)
+
+| Route                              | Component           | Description                               |
+| ---------------------------------- | ------------------- | ----------------------------------------- |
+| `/reviews/operator`                | `OperatorDashboard` | Operator dashboard for company management |
+| `/reviews/company/new`             | `CompanyForm`       | Create new company                        |
+| `/reviews/company/edit/:companyId` | `CompanyForm`       | Edit company (own companies only)         |
+| `/operator/blogs`                  | `OperatorBlogs`     | Operator's blog posts                     |
+| `/operator/blogs/create`           | `BlogForm`          | Create blog post (operator)               |
+| `/operator/blogs/edit/:blogId`     | `BlogForm`          | Edit blog post (operator)                 |
+| `/operator/reviews`                | `OperatorReviews`   | Operator's review management              |
+
+### Admin Routes (Admin Role Required)
+
+| Route                              | Component             | Description                    |
+| ---------------------------------- | --------------------- | ------------------------------ |
+| `/admin`                           | `AdminDashboard`      | Admin dashboard with analytics |
+| `/admin/blogs`                     | `AdminBlogs`          | Admin blog management          |
+| `/admin/blogs/create`              | `BlogForm`            | Create blog post (admin)       |
+| `/admin/blogs/edit/:blogId`        | `BlogForm`            | Edit blog post (admin)         |
+| `/admin/companies`                 | `AdminCompanies`      | Admin company management       |
+| `/admin/companies/create`          | `AdminCompanyForm`    | Create company (admin)         |
+| `/admin/companies/edit/:companyId` | `AdminCompanyForm`    | Edit company (admin)           |
+| `/admin/companies/:companyId`      | `AdminCompanyDetails` | Company details (admin view)   |
+| `/admin/about/edit`                | `AboutEditor`         | Edit about page content        |
+
+**Note:** All protected routes use the `ProtectedRoute` component which checks authentication and role requirements.
+
 ## 📡 API Documentation
 
 ### Base URL
@@ -576,14 +786,14 @@ Error Response:
 
 All admin blog endpoints require authentication and admin role (Admin or SubAdmin):
 
-| Method | Endpoint                               | Description                  | Authentication         |
-| ------ | -------------------------------------- | ---------------------------- | ---------------------- |
-| POST   | `/api/admin/blogs/addblog`             | Create blog post             | ✅ Admin + File Upload |
-| GET    | `/api/admin/blogs/getallblogs`         | Get all blogs (with filters) | ✅ Admin               |
-| GET    | `/api/admin/blogs/blogs/:id`           | Get blog by ID               | ✅ Admin               |
-| PUT    | `/api/admin/blogs/blogs/:id`           | Update blog post             | ✅ Admin               |
-| DELETE | `/api/admin/blogs/blogs/:id`           | Soft delete blog             | ✅ Admin               |
-| DELETE | `/api/admin/blogs/blogs/:id/permanent` | Permanent delete             | ✅ Admin               |
+| Method | Endpoint                                       | Description                  | Authentication         |
+| ------ | ---------------------------------------------- | ---------------------------- | ---------------------- |
+| POST   | `/api/admin/blogs/addblog`                     | Create blog post             | ✅ Admin + File Upload |
+| GET    | `/api/admin/blogs/getallblogs`                 | Get all blogs (with filters) | ✅ Admin               |
+| GET    | `/api/admin/blogs/:blogid/getblogbyid`         | Get blog by ID               | ✅ Admin               |
+| PUT    | `/api/admin/blogs/:blogid/updateblog`          | Update blog post             | ✅ Admin + File Upload |
+| DELETE | `/api/admin/blogs/:blogid/deleteblog`          | Soft delete blog             | ✅ Admin               |
+| DELETE | `/api/admin/blogs/:blogid/permanentdeleteblog` | Permanent delete             | ✅ Admin               |
 
 **Create Blog Request:**
 
@@ -609,12 +819,12 @@ All admin blog endpoints require authentication and admin role (Admin or SubAdmi
 
 ### Public Blog Endpoints
 
-**Note:** These controller methods exist but routes are not yet connected. Controllers ready in `blog.controller.js`:
+**Note:** Routes are connected but slug functionality requires model update:
 
-| Method | Endpoint                  | Description                        | Status                                          |
-| ------ | ------------------------- | ---------------------------------- | ----------------------------------------------- |
-| GET    | `/api/public/blogs`       | Get published blogs (with filters) | ⚠️ Route needed                                 |
-| GET    | `/api/public/blogs/:slug` | Get published blog by slug         | ⚠️ Route needed (slug field commented in model) |
+| Method | Endpoint                  | Description                        | Status                                            |
+| ------ | ------------------------- | ---------------------------------- | ------------------------------------------------- |
+| GET    | `/api/public/blogs`       | Get published blogs (with filters) | ✅ Implemented                                    |
+| GET    | `/api/public/blogs/:slug` | Get published blog by slug         | ⚠️ Route exists but slug field commented in model |
 
 **Get Published Blogs Query Parameters:**
 
@@ -626,6 +836,49 @@ All admin blog endpoints require authentication and admin role (Admin or SubAdmi
 - `featured` (boolean) - Filter featured posts (pass 'true' as string)
 
 **Note:** The `slug` field exists in the blog model but is currently commented out. The `getBlogBySlug` controller method exists but requires the slug field to be enabled in the model.
+
+### Admin Company Endpoints
+
+All admin company endpoints require authentication and admin/operator role:
+
+| Method | Endpoint                                       | Description                      | Authentication                  |
+| ------ | ---------------------------------------------- | -------------------------------- | ------------------------------- |
+| POST   | `/api/admin/company/addcompany`                | Create company                   | ✅ Admin/Operator + File Upload |
+| POST   | `/api/admin/company/getallcompanies`           | Get all companies (with filters) | ✅ Admin/Operator               |
+| GET    | `/api/admin/company/:companyId/getcompanybyid` | Get company by ID                | ✅ Admin/Operator               |
+
+**Note:** Update and delete endpoints exist in controller but routes are not yet connected. Controllers ready: `updateCompany()`, `deleteCompany()`, `addPromoCode()`, `updatePromoCode()`, `deletePromoCode()`.
+
+### Public Company Endpoints
+
+| Method | Endpoint                | Description                           | Status         |
+| ------ | ----------------------- | ------------------------------------- | -------------- |
+| GET    | `/api/public/companies` | Get approved companies (with filters) | ✅ Implemented |
+
+**Query Parameters:**
+
+- `page` (number) - Page number (default: 1)
+- `size` (number) - Items per page (default: 10)
+- `search` (string) - Search in name, description, details
+- `category` (string) - Filter by category
+- `minRating` (number) - Filter by minimum rating
+
+### Admin Review Endpoints
+
+All admin review endpoints require authentication and admin role:
+
+| Method | Endpoint                                      | Description            | Authentication |
+| ------ | --------------------------------------------- | ---------------------- | -------------- |
+| POST   | `/api/admin/review/addReview`                 | Create review          | ✅ Admin       |
+| GET    | `/api/admin/review/:userId/getreviewsbyusers` | Get reviews by user ID | ✅ Admin       |
+| DELETE | `/api/admin/review/:reviewId/deletereview`    | Delete review          | ✅ Admin       |
+
+### Settings Endpoints
+
+| Method | Endpoint                         | Description              | Authentication |
+| ------ | -------------------------------- | ------------------------ | -------------- |
+| GET    | `/api/public/settings/mock-mode` | Get mock mode setting    | Public         |
+| PUT    | `/api/admin/settings/mock-mode`  | Update mock mode setting | ✅ Admin       |
 
 ### Health Check
 
@@ -649,11 +902,12 @@ All admin blog endpoints require authentication and admin role (Admin or SubAdmi
 
 - JWT-based authentication
 - Password hashing with bcrypt
-- Role-based access control (Admin, User, SubAdmin)
+- Role-based access control (Admin, User, SubAdmin, Operator)
 - Cookie and Bearer token support
 - User activation/deactivation
 - Soft delete support (users can be reactivated)
 - Master password bypass option (for development)
+- Password update functionality (protected endpoint)
 - Password reset functionality (controllers exist, routes commented out)
 
 **API Endpoints:**
@@ -663,6 +917,8 @@ All admin blog endpoints require authentication and admin role (Admin or SubAdmi
 - `POST /api/auth/update-password` - Update password (protected, requires authentication)
 - `POST /api/auth/reactivateUser` - Reactivate user account
 - `GET /ping` - Health check endpoint
+
+**Note:** Password reset endpoints (`forget-password`, `reset-password`) exist in controller but routes are commented out.
 
 ### Academy Section
 
@@ -695,15 +951,19 @@ All admin blog endpoints require authentication and admin role (Admin or SubAdmi
 **User Roles:**
 
 - **Users**: Can view companies and submit reviews
-- **Operators**: Can create/edit companies they manage
+- **Operators**: Can create/edit companies they manage (own companies only)
 - **Admins**: Full access to all companies and reviews
 
 **Current Implementation:**
 
-- Frontend uses mock data
+- Frontend uses real API data (with mock fallback)
 - Backend models ready (`company.model.js`, `review.model.js`)
+- Backend controllers implemented for companies and reviews
+- Public API endpoint for approved companies (`/api/public/companies`)
+- Admin API endpoints for company management
 - Operator dashboard for managing companies
-- Review rating aggregation
+- Review rating aggregation (automatic recalculation)
+- Promo code management (controllers ready, routes pending)
 
 ### Blog System
 
@@ -719,21 +979,21 @@ All admin blog endpoints require authentication and admin role (Admin or SubAdmi
 - Draft, published, and archived status management
 - File upload with AWS S3 storage
 
-**Backend Implementation (✅ Partially Complete):**
+**Backend Implementation (✅ Complete):**
 
 - **Admin Routes** (Protected, requires admin role):
 
   - `POST /api/admin/blogs/addblog` - Create blog post with file upload (featured image + multiple images)
   - `GET /api/admin/blogs/getallblogs` - Get all blogs with filters (status, search, pagination)
-  - `GET /api/admin/blogs/blogs/:id` - Get blog by ID
-  - `PUT /api/admin/blogs/blogs/:id` - Update blog post
-  - `DELETE /api/admin/blogs/blogs/:id` - Soft delete blog post
-  - `DELETE /api/admin/blogs/blogs/:id/permanent` - Permanently delete blog post
+  - `GET /api/admin/blogs/:blogid/getblogbyid` - Get blog by ID
+  - `PUT /api/admin/blogs/:blogid/updateblog` - Update blog post with file upload
+  - `DELETE /api/admin/blogs/:blogid/deleteblog` - Soft delete blog post
+  - `DELETE /api/admin/blogs/:blogid/permanentdeleteblog` - Permanently delete blog post
 
-- **Public Routes** (Controllers ready, routes pending):
+- **Public Routes** (✅ Implemented):
 
-  - `getPublishedBlogs()` - Get published blogs with filtering (category, tag, search, featured)
-  - `getBlogBySlug()` - Get published blog by slug
+  - `GET /api/public/blogs` - Get published blogs with filtering (category, tag, search, featured)
+  - `GET /api/public/blogs/:slug` - Get published blog by slug (route exists, but slug field commented in model)
 
 - **File Upload Features:**
 
@@ -921,7 +1181,7 @@ R2_PUBLIC_DOMAIN=https://your-public-domain.com
 - Full name, email, mobile number
 - Profile image, gender, date of birth
 - Password (hashed with bcrypt)
-- Role (Admin, User, SubAdmin)
+- Role (Admin, User, SubAdmin, Operator)
 - Active/deleted status (soft delete support)
 - Module access permissions (via Permissions model)
 - Password reset tokens and expiry
@@ -956,7 +1216,8 @@ R2_PUBLIC_DOMAIN=https://your-public-domain.com
 
 - Company ID reference
 - User ID reference
-- Rating, comment
+- Rating (1-5), comment
+- Status (pending, approved, rejected) - optional
 - Timestamps
 
 **Product Model:**
@@ -1121,21 +1382,26 @@ The application supports multiple deployment environments:
 - **Frontend:**
 
   - Complete UI/UX for all pages
-  - Component architecture
-  - Routing and navigation
-  - State management (Redux)
-  - Mock data integration
-  - Responsive design
-  - Authentication flow (frontend)
+  - Component architecture (organized by feature)
+  - Routing and navigation (React Router)
+  - State management (Redux Toolkit)
+  - Real API integration with mock data fallback
+  - Responsive design (mobile-first)
+  - Authentication flow (frontend + backend integration)
   - Shopping cart functionality (Redux)
-  - Dashboard components with charts
+  - Dashboard components with charts (Recharts)
+  - Rich text editor (React Quill) for blog and company management
+  - File upload UI components
+  - Protected routes with role-based access
+  - Mock mode toggle (admin-controlled)
+  - SEO optimization (React Helmet Async)
 
 - **Backend:**
   - Express.js server setup
-  - MongoDB connection
+  - MongoDB connection (Mongoose)
   - Complete authentication system (JWT)
   - User model and authentication endpoints
-  - Database models for all entities (User, Blog, Event, Company, Review, Product, Podcast, Course, Permissions)
+  - Database models for all entities (User, Blog, Event, Company, Review, Product, Podcast, Course, Permissions, Setting)
   - Middleware (auth, authorization, security, file upload)
   - Route structure (public/protected/admin)
   - **Blog Management System** (Admin):
@@ -1146,12 +1412,26 @@ The application supports multiple deployment environments:
     - Pagination support
     - Soft delete and permanent delete
     - View tracking
+    - Public API endpoints for published blogs
+  - **Company Management System** (Admin/Operator):
+    - Create and read operations
+    - Public API endpoint for approved companies
+    - Rating aggregation (auto-calculated)
+    - Promo code management (controllers ready)
+    - File upload for logos
+  - **Review Management System** (Admin):
+    - Create reviews
+    - Get reviews by user
+    - Delete reviews
+  - **Settings Management**:
+    - Mock mode toggle (admin-controlled, public-readable)
   - Cloudflare R2 file storage integration (S3-compatible)
   - AWS S3 helper available as alternative (not currently used)
   - File upload middleware (Multer) with MIME type validation
   - Email helper (SendGrid integration ready)
   - Standardized API response helpers
   - Utility functions (pagination, regex escaping)
+  - Error tracking (Sentry integration)
 
 ### In Progress / Pending 🔄
 
@@ -1159,29 +1439,32 @@ The application supports multiple deployment environments:
 
   - **Public API endpoints:**
 
-    - Blog public routes (getPublishedBlogs, getBlogBySlug) - controllers ready, routes needed (note: slug field is commented out in blog model)
-    - Events API endpoints
-    - Companies/Reviews API endpoints
-    - Products API endpoints
-    - Podcasts API endpoints
-    - Courses API endpoints
-    - Free resources API endpoints
+    - ✅ Blog public routes (`/api/public/blogs`, `/api/public/blogs/:slug`) - Implemented
+    - ✅ Company public routes (`/api/public/companies`) - Implemented
+    - ✅ Settings public routes (`/api/public/settings/mock-mode`) - Implemented
+    - ⚠️ Events API endpoints - Controllers exist, routes not connected
+    - ⚠️ Products API endpoints - Controllers exist, routes not connected
+    - ⚠️ Podcasts API endpoints - Controllers exist, routes not connected
+    - ⚠️ Courses API endpoints - Controllers exist, routes not connected
+    - ⚠️ Free resources API endpoints - Not implemented
 
   - **Protected API endpoints:**
 
-    - User profile management
-    - User-specific operations
-    - Review submission
-    - Event registration
+    - ⚠️ User profile management - Not implemented
+    - ⚠️ User-specific operations - Not implemented
+    - ⚠️ Review submission (public endpoint) - Controller exists but route not in protected
+    - ⚠️ Event registration - Not implemented
 
   - **Admin API endpoints:**
-    - Events management (controllers commented out)
-    - Products management (controllers commented out)
-    - Companies management (controllers commented out)
-    - Reviews management (controllers commented out)
-    - Podcasts management (controllers commented out)
-    - Courses management (controllers commented out)
-    - Dashboard statistics
+    - ✅ Blog management - Fully implemented
+    - ✅ Company management - Partially implemented (create, read; update/delete controllers ready but routes missing)
+    - ✅ Review management - Partially implemented (create, read by user, delete)
+    - ✅ Settings management - Implemented (mock mode)
+    - ⚠️ Events management - Controllers exist, routes commented out
+    - ⚠️ Products management - Controllers exist, routes commented out
+    - ⚠️ Podcasts management - Controllers exist, routes commented out
+    - ⚠️ Courses management - Controllers exist, routes commented out
+    - ⚠️ Dashboard statistics - Controllers exist, routes commented out
 
 - **Frontend-Backend Integration:**
 
@@ -1205,11 +1488,19 @@ The application supports multiple deployment environments:
 
 ### Code Issues
 
-1. **Supervisor Role Reference**: The file `backend/routes/api/index.js` references `constants.roles.supervisor` in the admin route authorization, but this role is not defined in `backend/utils/constants.js`. The defined roles are: Admin, User, SubAdmin. This may cause runtime errors. Consider removing the supervisor reference or adding it to constants.
+1. **Supervisor Role Reference**: The file `backend/routes/api/index.js` references `constants.roles.supervisor` in the admin route authorization, but this role is not defined in `backend/utils/constants.js`. The defined roles are: Admin, User, SubAdmin, Operator. This may cause runtime errors. Consider removing the supervisor reference or adding it to constants.
 
-2. **Blog Slug Field**: The slug field in the blog model (`backend/models/blog.model.js`) is commented out. The `getBlogBySlug` controller method exists but cannot function until the slug field is enabled in the model.
+2. **Company Update/Delete Routes**: The company controller has `updateCompany()` and `deleteCompany()` methods implemented, but the routes are not connected in `backend/routes/api/admin/company.routes.js`. These endpoints need to be added:
 
-3. **Public Blog Routes**: The public blog controller methods (`getPublishedBlogs`, `getBlogBySlug`) are implemented but not yet connected to routes in `backend/routes/api/public/index.js`.
+   - `PUT /api/admin/company/:companyId/updatecompany` - Update company
+   - `DELETE /api/admin/company/:companyId/deletecompany` - Delete company
+   - `POST /api/admin/company/:companyId/promocodes` - Add promo code
+   - `PUT /api/admin/company/:companyId/promocodes/:promoId` - Update promo code
+   - `DELETE /api/admin/company/:companyId/promocodes/:promoId` - Delete promo code
+
+3. **Blog Slug Field**: The slug field in the blog model (`backend/models/blog.model.js`) is commented out. The `getBlogBySlug` controller method and route exist but cannot function until the slug field is enabled in the model.
+
+4. **Protected Routes**: The protected routes file (`backend/routes/api/protected/index.js`) exists but appears to be empty. User-specific protected endpoints (profile management, review submission, event registration) need to be implemented.
 
 ## 🧪 Development Guidelines
 
@@ -1260,20 +1551,23 @@ For support, please contact the development team or visit the contact page at `/
 
 Potential features for future development:
 
-- **Public API Routes**: Connect blog public endpoints (getPublishedBlogs, getBlogBySlug)
-- **Content Management**: Complete CRUD APIs for Events, Products, Companies, Reviews, Podcasts, Courses
-- **User Features**: Profile management, review submission, event registration
+- **Company Management**: Connect update/delete routes and promo code management routes
+- **Content Management**: Complete CRUD APIs for Events, Products, Podcasts, Courses
+- **User Features**: Profile management, protected user endpoints, event registration
+- **Review System**: Complete review moderation, status updates, public review submission endpoint
+- **Blog System**: Enable slug field in model, complete slug-based routing
 - **Real-time Features**: Chat or Discord integration, live streaming for webinars
 - **Trading Tools**: Advanced trading tools and calculators
 - **Mobile**: Mobile app version (React Native)
-- **Analytics**: Enhanced analytics and reporting
+- **Analytics**: Dashboard statistics endpoints, enhanced analytics and reporting
 - **Integrations**: Trading APIs, payment gateway for merchandise
-- **Communication**: Email notification system (SendGrid helper ready)
-- **Content**: Comment system for blog posts, slug generation (slug field exists in model but is commented out)
+- **Communication**: Email notification system (SendGrid helper ready), password reset flow completion
+- **Content**: Comment system for blog posts, slug generation
 - **Education**: Course progress tracking, certificate generation
 - **Social**: Social media integration
 - **Security**: Two-factor authentication, password reset flow completion
 - **Permissions**: Advanced permission system refinement
+- **Protected Routes**: Implement user-specific protected endpoints
 
 ---
 

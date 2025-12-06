@@ -72,9 +72,9 @@ function Layout({ children }) {
   }, [dispatch]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
+    <div className="min-h-screen flex flex-col bg-black text-foreground">
       <Header />
-      <main className="flex-1 pt-20 bg-background text-foreground">
+      <main className="flex-1 pt-20 bg-black text-foreground">
         {children}
       </main>
       <Footer />

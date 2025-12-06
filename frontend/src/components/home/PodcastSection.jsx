@@ -32,12 +32,12 @@ function PodcastSection() {
   ];
 
   return (
-    <section className="py-20 bg-gray-950 relative overflow-hidden">
+    <section className="py-20 bg-black relative overflow-hidden">
       {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
-      </div>
+      </div> */}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
@@ -45,14 +45,26 @@ function PodcastSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-12"
+          className="text-center mb-16"
         >
-          <div className="inline-block px-6 py-2 rounded-full bg-blue-500/10 backdrop-blur-sm mb-4">
-            <h2 className="text-xl font-semibold text-blue-400">Recent Podcast & Video Hosted by [XK Trading Floor]</h2>
-          </div>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight mb-6 leading-tight"
+          >
+            Recent <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent">Podcast & Video</span>
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="text-xl sm:text-2xl text-gray-300 font-medium max-w-2xl mx-auto"
+          >
             Watch our latest content and learn from expert traders
-          </p>
+          </motion.p>
         </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -82,7 +94,7 @@ function PodcastSection() {
                 </div>
               </div>
               <div className="card-body">
-                <h3 className="font-semibold text-lg mb-1 line-clamp-2">{video.title}</h3>
+                <h3 className="font-display font-extrabold text-xl sm:text-2xl tracking-tight mb-1 line-clamp-2">{video.title}</h3>
               </div>
             </motion.a>
           ))}

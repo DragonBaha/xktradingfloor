@@ -44,11 +44,16 @@ function Blog() {
     };
   }, [dispatch]);
 
-  // Fetch blogs based on mock mode
+  // FORCE REAL DATA MODE - Always fetch from database (mock mode is hidden)
+  // Mock functionality code is kept but disabled
+  const FORCE_REAL_DATA = true;
+  const effectiveMockMode = FORCE_REAL_DATA ? false : mockMode;
+
+  // Fetch blogs based on mock mode (currently forced to real data)
   React.useEffect(() => {
     const loadBlogs = async () => {
-      if (mockMode) {
-        // Mock mode ON: Load mock data ONLY - no API calls
+      if (effectiveMockMode) {
+        // Mock mode ON: Load mock data ONLY - no API calls (DISABLED FOR NOW)
         try {
           const mockBlogsModule = await import("../models/blogsData.js");
           const mockBlogs = mockBlogsModule.blogs || [];
@@ -58,7 +63,7 @@ function Blog() {
           setAll([]);
         }
       } else {
-        // Mock mode OFF: Fetch published blogs from backend
+        // Mock mode OFF: Fetch published blogs from backend (ALWAYS USED NOW)
         dispatch(fetchPublishedBlogs({ limit: 1000 }));
       }
     };
@@ -66,7 +71,7 @@ function Blog() {
     loadBlogs();
     
     // Refresh blogs every 30 seconds when not in mock mode (to catch new publications)
-    if (!mockMode) {
+    if (!effectiveMockMode) {
       const refreshInterval = setInterval(() => {
         dispatch(fetchPublishedBlogs({ limit: 1000 }));
       }, 30000);
@@ -78,13 +83,13 @@ function Blog() {
     return () => {
       // No cleanup needed - React will handle unmounting
     };
-  }, [dispatch, mockMode]);
+  }, [dispatch, effectiveMockMode]);
 
   // Update local state when published blogs are fetched (only when mock mode is OFF)
   React.useEffect(() => {
     // Only update if mock mode is OFF and we have published blogs
-    if (mockMode) {
-      // Don't update from API when mock mode is ON
+    if (effectiveMockMode) {
+      // Don't update from API when mock mode is ON (DISABLED FOR NOW)
       return;
     }
     
@@ -130,11 +135,11 @@ function Blog() {
           };
         });
       setAll(transformedBlogs);
-    } else if (!mockMode && !blogsLoading && (!publishedBlogs || publishedBlogs.length === 0)) {
+    } else if (!effectiveMockMode && !blogsLoading && (!publishedBlogs || publishedBlogs.length === 0)) {
       // If mock mode is OFF, API call completed, but no blogs returned - set empty array
       setAll([]);
     }
-  }, [publishedBlogs, mockMode, blogsLoading]);
+  }, [publishedBlogs, effectiveMockMode, blogsLoading]);
 
   const categories = Array.from(new Set(all.map((p) => p.category).filter(Boolean)));
   const tags = Array.from(new Set(all.flatMap((p) => p.tags || [])));
@@ -180,7 +185,7 @@ function Blog() {
   };
 
   return (
-    <div>
+    <div className="bg-black min-h-screen">
       <Helmet>
         <title>Blog | XK Trading Floor</title>
         <meta
@@ -190,7 +195,8 @@ function Blog() {
       </Helmet>
       <BlogHero />
 
-      {isAdmin && (
+      {/* Mock Data Toggle - HIDDEN FOR NOW (can be enabled later) */}
+      {false && isAdmin && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-end gap-4">
             {/* Modern Mock Data Toggle */}
@@ -225,8 +231,9 @@ function Blog() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-4">
           {/* Featured Blog Section (Advertisement) */}
+          {/* Original featured card had: bg-gradient-to-br from-blue-500/10 to-transparent */}
           {featuredBlog && (
-            <div className="card border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-transparent">
+            <div className="card border-2 border-blue-500/30">
               <div className="card-body">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="px-2 py-1 rounded bg-blue-500/20 text-blue-300 text-xs font-semibold">
@@ -275,7 +282,7 @@ function Blog() {
               </button>
             </div>
           )}
-          {!mockMode && blogsLoading ? (
+          {!effectiveMockMode && blogsLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-gray-400">Loading blogs...</div>
             </div>

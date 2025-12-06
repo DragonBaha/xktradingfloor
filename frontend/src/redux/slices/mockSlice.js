@@ -55,7 +55,11 @@ export const updateMockMode = createAsyncThunk(
       if (typeof window !== "undefined") {
         localStorage.setItem("xk_mock_mode", enabled.toString());
       }
-      return rejectWithValue(error.response?.data?.message || error.message || "Failed to update mock mode");
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to update mock mode"
+      );
     }
   }
 );

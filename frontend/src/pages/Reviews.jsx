@@ -6,8 +6,10 @@ import { getAllCompanies } from "../controllers/companiesController.js";
 import CompanyCard from "../components/reviews/CompanyCard.jsx";
 import CompanyFilters from "../components/reviews/CompanyFilters.jsx";
 import Pagination from "../components/reviews/Pagination.jsx";
+import CardLoader from "../components/shared/CardLoader.jsx";
+import WriteToUsModal from "../components/reviews/WriteToUsModal.jsx";
 import { getUserCookie } from "../utils/cookies.js";
-import { updateMockMode, fetchMockMode } from "../redux/slices/mockSlice.js";
+import { updateMockMode, fetchMockMode, syncMockModeFromStorage } from "../redux/slices/mockSlice.js";
 
 // Map URL category to actual category value
 const categoryMap = {
@@ -49,6 +51,7 @@ export default function Reviews() {
   const [filters, setFilters] = React.useState({});
   const [currentPage, setCurrentPage] = React.useState(1);
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
+  const [writeToUsModalOpen, setWriteToUsModalOpen] = React.useState(false);
 
   // Extract category from URL pathname
   React.useEffect(() => {
@@ -181,14 +184,15 @@ export default function Reviews() {
     : "Browse brokers, prop firms, and crypto exchanges. Read authentic reviews from traders and find the best deals with promo codes.";
 
   return (
-    <div className="bg-gray-950 text-white min-h-screen">
+    <div className="bg-black text-white min-h-screen">
       <Helmet>
         <title>{pageTitle}</title>
         <meta name="description" content={heroDescription} />
       </Helmet>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-green-500/10 via-transparent to-transparent">
+      <section className="relative overflow-hidden bg-black">
+        {/* <section className="relative overflow-hidden bg-gradient-to-b from-green-500/10 via-transparent to-transparent"> */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8 text-center">
           <h1 className="font-display font-extrabold text-3xl sm:text-5xl mb-3">
             {heroTitle}
@@ -197,7 +201,8 @@ export default function Reviews() {
         </div>
       </section>
 
-      {isAdmin && (
+      {/* Mock Data Toggle - HIDDEN FOR NOW (can be enabled later) */}
+      {false && isAdmin && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-end gap-4">
             {/* Modern Mock Data Toggle */}
@@ -231,6 +236,19 @@ export default function Reviews() {
           </div>
         </section>
       )}
+      
+      {isAdmin && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-end gap-4">
+            <Link to="/admin/companies" className="btn btn-secondary">
+              Manage Companies
+            </Link>
+            <Link to="/admin/companies/create" className="btn btn-primary">
+              + Add Company
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* Main Content */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -243,9 +261,7 @@ export default function Reviews() {
           {/* Companies List */}
           <div className="lg:col-span-3">
             {loading ? (
-              <div className="text-center py-12">
-                <div className="text-gray-400">Loading companies...</div>
-              </div>
+              <CardLoader count={3} horizontal={true} />
             ) : companies.length === 0 ? (
               <div className="card">
                 <div className="card-body text-center py-12">
@@ -282,11 +298,48 @@ export default function Reviews() {
                     onItemsPerPageChange={handleItemsPerPageChange}
                   />
                 )}
+                {/* Write to Us Option */}
+                <div className="card mt-6 border-2 border-dashed border-gray-700 hover:border-blue-500/50 transition-colors">
+                  <div className="card-body text-center py-8">
+                    <div className="text-gray-400 mb-4">
+                      Didn't find your broker, propfirm or crypto?
+                    </div>
+                    <p className="text-gray-300 mb-6">
+                      Write to us and get it added to our platform.
+                    </p>
+                    <button
+                      onClick={() => setWriteToUsModalOpen(true)}
+                      className="btn btn-primary inline-flex items-center gap-2"
+                    >
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 4v16m8-8H4"
+                        />
+                      </svg>
+                      Request Company Addition
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
         </div>
       </section>
+      <WriteToUsModal
+        isOpen={writeToUsModalOpen}
+        onClose={() => setWriteToUsModalOpen(false)}
+        onSubmit={(data) => {
+          console.log("Submitted:", data);
+        }}
+      />
     </div>
   );
 }

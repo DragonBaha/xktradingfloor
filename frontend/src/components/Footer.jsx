@@ -7,13 +7,12 @@ function Footer() {
     <footer className="mt-12 border-t border-border/60 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
         <div>
-          <Link to="/" className="flex items-center gap-2 mb-4">
+          <Link to="/" className="flex items-center mb-4">
             <img
-              src={getAssetPath("/assets/logo.png")}
+              src={getAssetPath("/assets/navbar logo.png")}
               alt="XK Trading Floor Logo"
-              className="h-8 w-8 rounded object-cover"
+              className="h-16 w-auto rounded object-contain"
             />
-            <span className="font-display font-extrabold text-white">XK Trading Floor</span>
           </Link>
           <p className="text-sm text-gray-400">Learn, trade, and grow with a modern trading community.</p>
         </div>

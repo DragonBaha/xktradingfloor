@@ -1,8 +1,17 @@
 import api from "./api.js";
 
+// FORCE REAL DATA MODE - Mock functionality is hidden but code is kept for future use
+// Set to false to always use real data from database
+const FORCE_REAL_DATA_MODE = true;
+
 // Helper to check if mock mode is enabled
 // Checks backend first, then falls back to localStorage (synced by Redux)
 async function isMockModeEnabled() {
+  // If force real data mode is enabled, always return false (use real data)
+  if (FORCE_REAL_DATA_MODE) {
+    return false;
+  }
+
   // Try to fetch from backend first (for global sync)
   try {
     const response = await api.get("/public/settings/mock-mode");
@@ -146,8 +155,37 @@ export async function getReviewsByCompanyId(companyId) {
 }
 
 // Get reviews by user ID
+// Backend endpoint: GET /api/admin/review/:userId/getreviewsbyusers
 export async function getReviewsByUserId(userId) {
-  // return api.get(`/users/${userId}/reviews`);
+  const mockMode = await isMockModeEnabled();
+
+  // Try backend API first (when mock mode is OFF)
+  if (!mockMode) {
+    try {
+      const response = await api.get(
+        `/admin/review/${userId}/getreviewsbyusers`
+      );
+      // Backend returns: { success: true, data: { docs: [...], totalItems, currentPage, totalPages } }
+      if (response.data?.success && response.data?.data?.docs) {
+        const reviews = response.data.data.docs.map((review) => ({
+          ...review,
+          id: review._id || review.id,
+        }));
+        return { data: reviews };
+      }
+      if (Array.isArray(response.data?.data)) {
+        return { data: response.data.data };
+      }
+      return response;
+    } catch (error) {
+      if (error.response?.status === 401) {
+        throw error;
+      }
+      // Fall back to mock if backend fails
+    }
+  }
+
+  // Mock data implementation
   const { data } = await getAllReviews({ userId });
   return { data };
 }
@@ -175,41 +213,43 @@ export async function createReview(reviewData) {
     throw new Error("You must be logged in to create a review");
   }
 
-  // Backend API call (ready for integration)
-  // Uncomment when backend is ready:
-  /*
-  try {
-    const formData = new FormData();
-    formData.append('rating', reviewData.rating);
-    formData.append('pros', reviewData.pros || '');
-    formData.append('cons', reviewData.cons || '');
-    formData.append('description', reviewData.description || reviewData.body || '');
-    if (reviewData.screenshot && reviewData.screenshot instanceof File) {
-      formData.append('screenshot', reviewData.screenshot);
-    }
-    
-    const response = await api.post(`/protected/reviews/${reviewData.companyId}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-    
-    if (mockMode) {
-      // Also save to mock data if mock mode is ON
-      const reviews = await loadReviews();
-      const stored = localStorage.getItem('xktf_reviews');
-      let allReviews = stored ? JSON.parse(stored) : reviews;
-      allReviews.push(response.data);
-      await saveReviews(allReviews);
-    }
-    
-    return response;
-  } catch (error) {
-    if (mockMode) {
-      console.warn('Backend unavailable, using mock data');
-    } else {
-      throw error;
+  // Backend API call
+  // Backend endpoint: POST /api/admin/review/addReview
+  // Backend expects: { companyId, rating, title, body, comment }
+  if (!mockMode) {
+    try {
+      const payload = {
+        companyId: reviewData.companyId,
+        rating: reviewData.rating,
+        title: reviewData.title || reviewData.description || "",
+        body: reviewData.body || reviewData.description || "",
+        comment:
+          reviewData.comment || reviewData.description || reviewData.body || "",
+      };
+
+      const response = await api.post("/admin/review/addReview", payload);
+
+      // Backend returns: { success: true, message: "...", data: {...} }
+      if (response.data?.success && response.data?.data) {
+        const review = response.data.data;
+        return {
+          data: {
+            ...review,
+            id: review._id || review.id,
+          },
+        };
+      }
+      return response;
+    } catch (error) {
+      if (error.response?.status === 401) {
+        throw error;
+      }
+      // If backend fails and mock mode is OFF, throw error
+      if (!mockMode) {
+        throw error;
+      }
     }
   }
-  */
 
   // Mock data implementation
   const reviews = await loadReviews();
@@ -307,18 +347,49 @@ export async function updateReview(reviewId, updates) {
 }
 
 // Delete review (users can only delete their own reviews)
+// Backend endpoint: DELETE /api/admin/review/:reviewId/deletereview
 export async function deleteReview(reviewId) {
-  // return api.delete(`/reviews/${reviewId}`);
+  const mockMode = await isMockModeEnabled();
   const user = getCurrentUser();
+
   if (!user) {
     throw new Error("You must be logged in to delete a review");
   }
 
+  // Try backend API first (when mock mode is OFF)
+  if (!mockMode) {
+    try {
+      const response = await api.delete(
+        `/admin/review/${reviewId}/deletereview`
+      );
+      // Backend returns: { success: true, message: "..." }
+      if (response.data?.success) {
+        return { data: { success: true } };
+      }
+      return response;
+    } catch (error) {
+      if (error.response?.status === 401) {
+        throw error;
+      }
+      if (error.response?.status === 403) {
+        // Permission denied - user can't delete this review
+        throw new Error("You can only delete your own reviews");
+      }
+      // If backend fails and mock mode is OFF, throw error
+      if (!mockMode) {
+        throw error;
+      }
+    }
+  }
+
+  // Mock data implementation (only if mock mode is ON or backend failed)
   const reviews = await loadReviews();
   const stored = localStorage.getItem("xktf_reviews");
   let allReviews = stored ? JSON.parse(stored) : reviews;
 
-  const reviewIndex = allReviews.findIndex((r) => r.id === reviewId);
+  const reviewIndex = allReviews.findIndex(
+    (r) => r.id === reviewId || r._id === reviewId
+  );
   if (reviewIndex === -1) {
     throw new Error("Review not found");
   }

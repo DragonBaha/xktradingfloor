@@ -749,7 +749,10 @@ function AdminDashboard() {
             <div className="text-sm text-gray-400">Manage posts</div>
           </div>
         </Link>
-        <div className="card hover:border-green-500/50 transition-all cursor-pointer">
+        <Link
+          to="/admin/companies"
+          className="card hover:border-green-500/50 transition-all hover:scale-105"
+        >
           <div className="card-body">
             <div className="font-semibold mb-1 flex items-center gap-2">
               <MessageSquare className="w-4 h-4" />
@@ -759,8 +762,11 @@ function AdminDashboard() {
               Moderate companies & reviews
             </div>
           </div>
-        </div>
-        <div className="card hover:border-purple-500/50 transition-all cursor-pointer">
+        </Link>
+        <Link
+          to="/admin/companies"
+          className="card hover:border-purple-500/50 transition-all hover:scale-105"
+        >
           <div className="card-body">
             <div className="font-semibold mb-1 flex items-center gap-2">
               <Building2 className="w-4 h-4" />
@@ -768,7 +774,7 @@ function AdminDashboard() {
             </div>
             <div className="text-sm text-gray-400">Manage & approve</div>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Delete Review Modal */}
