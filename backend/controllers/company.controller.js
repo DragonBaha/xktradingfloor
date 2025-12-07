@@ -16,6 +16,72 @@ async function recalculateCompanyRating(companyId) {
     return { ratingsAggregate: parseFloat(ratingsAggregate.toFixed(1)), totalReviews: reviews.length };
 }
 
+exports.getAllApprovedCompanies = async (req, res) => {
+    try {
+        const { search, page, size } = req.query;
+        const { limit, offset } = getPagination(page, size);
+        const searchTerm = escapeRegex(search);
+        const { category = "" } = req.body;
+
+        const query = {};
+
+        if (category != "") query.category = category;
+        query.status = 'approved';
+
+        if (searchTerm) {
+            query.$or = [
+                { name: { $regex: searchTerm, $options: 'i' } },
+                { description: { $regex: searchTerm, $options: 'i' } },
+                { details: { $regex: searchTerm, $options: 'i' } }
+            ];
+        }
+
+        const companies = await CompanyModel.find(query)
+            .populate('operatorId', 'fullName email profileImage')
+            .sort({ createdAt: -1 })
+            .skip(offset)
+            .limit(limit)
+            .lean();
+
+        const totalItems = await CompanyModel.countDocuments(query);
+
+        const reviews = await ReviewModel.find({
+            companyId: { $in: companies.map(c => c._id) }
+        }).populate("userId").lean();
+
+        const reviewsByCompany = reviews.reduce((acc, review) => {
+            if (!acc[review.companyId]) {
+                acc[review.companyId] = [];
+            }
+            acc[review.companyId].push(review);
+            return acc;
+        }, {});
+
+        const companiesWithRatings = companies.map(company => {
+            const companyReviews = reviewsByCompany[company._id] || [];
+            const reviewers = companyReviews.map(r => r.userId);
+            const totalReviews = companyReviews.length;
+            const ratingsAggregate = totalReviews > 0
+                ? parseFloat((companyReviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1))
+                : 0;
+            return {
+                ...company,
+                reviewers,
+                ratingsAggregate,
+                totalReviews
+            };
+        })
+
+        return sendSuccessResponse(res, getPaginationData(
+            { count: totalItems, docs: companiesWithRatings },
+            page,
+            limit
+        ));
+    } catch (error) {
+        return sendErrorResponse(res, error);
+    }
+};
+
 // Get all companies (with optional filters)
 exports.getAllCompanies = async (req, res) => {
     try {
