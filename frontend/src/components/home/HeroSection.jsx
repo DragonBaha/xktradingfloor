@@ -1,8 +1,8 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { getAssetPath } from '../../utils/assets.js';
+import React from "react";
+import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import { getAssetPath } from "../../utils/assets.js";
 
 function HeroSection() {
   return (
@@ -59,33 +59,45 @@ function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight mb-6 leading-tight"
+            className="font-display font-bold text-4xl sm:text-5xl lg:text-6xl xl:text-7xl tracking-tight mb-6 leading-tight"
           >
-            Find the Best <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Brokers, Prop Firms & Academies</span> — All in One Place
+            <span className="text-white">A Transparent</span>
+            <br />
+            <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">
+              Trading
+            </span>
+            <br />
+            <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">
+              Community
+            </span>
+            <br />
+            <span className="text-white">Built by Traders</span>
           </motion.h1>
-          <motion.div
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-sm sm:text-base text-gray-300 mb-8 space-y-3 leading-relaxed"
+            className="text-base sm:text-lg text-gray-300 mb-8 leading-relaxed max-w-2xl"
           >
-            <p>
-              Compare verified brokers and prop firms, find real trading education, and join India's most active trading community.
-            </p>
-            <p>
-              Earn rebates, rewards, and knowledge - all under one platform.
-            </p>
-          </motion.div>
+            Share your journey, read honest reviews, discover trading events,
+            and learn from real traders — all in one place.
+          </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
             className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4"
           >
-            <Link to="/reviews" className="btn rounded-full btn-primary bg-white text-gray-900 hover:bg-gray-100 border-2 border-white hover:scale-105 transition-all shadow-lg px-6 py-3">
+            <Link
+              to="/reviews"
+              className="btn rounded-full btn-primary bg-white text-gray-900 hover:bg-gray-100 border-2 border-white hover:scale-105 transition-all shadow-lg px-6 py-3"
+            >
               Find the Right Broker
             </Link>
-            <Link to="/academy" className="btn rounded-full btn-secondary border-2 border-gray-600 hover:border-gray-500 bg-gray-800/50 hover:bg-gray-800 text-white hover:scale-105 transition-all px-6 py-3">
+            <Link
+              to="/academy"
+              className="btn rounded-full btn-secondary border-2 border-gray-600 hover:border-gray-500 bg-gray-800/50 hover:bg-gray-800 text-white hover:scale-105 transition-all px-6 py-3"
+            >
               Join XK Trading Floor
             </Link>
           </motion.div>
@@ -97,71 +109,46 @@ function HeroSection() {
           className="flex items-center justify-center relative"
         >
           <div className="relative h-96 w-96 flex items-center justify-center">
-            {/* Logo - Center with Ripple Effect */}
+            {/* Main Circular Border */}
             <motion.div
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.5 }}
-              className="absolute z-30 flex items-center justify-center"
+              className="absolute h-96 w-96 border border-gray-700/50 rounded-full flex items-center justify-center"
             >
-              <motion.img
-                src={getAssetPath("/assets/logo.png")}
-                alt="XK Trading Floor Logo"
-                className="h-64 w-48 md:h-80 md:w-60 lg:h-96 lg:w-72 object-contain drop-shadow-2xl"
+              {/* Logo - Center */}
+              <motion.div
+                className="flex items-center justify-center"
                 animate={{
-                  scale: [1, 1.05, 1],
-                  rotate: [0, 2, -2, 0]
+                  scale: [1, 1.02, 1],
                 }}
                 transition={{
                   duration: 4,
                   repeat: Infinity,
-                  ease: "easeInOut"
+                  ease: "easeInOut",
                 }}
-              />
+              >
+                <img
+                  src={getAssetPath("/assets/logo.png")}
+                  alt="XK Trading Floor Logo"
+                  className="h-48 w-48 md:h-64 md:w-64 lg:h-80 lg:w-80 object-contain"
+                  style={{ filter: "brightness(0) invert(1)" }}
+                />
+              </motion.div>
             </motion.div>
 
-            {/* Inner Circle - Ripple 1 */}
+            {/* Subtle Ripple Effect - Optional */}
             <motion.div
-              animate={{ 
-                scale: [1, 1.5, 1],
-                opacity: [0.7, 0, 0.7]
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.3, 0, 0.3],
               }}
-              transition={{ 
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-              className="absolute h-64 w-64 border-2 border-blue-400/50 rounded-full"
-            />
-
-            {/* Outer Circle - Ripple 2 */}
-            <motion.div
-              animate={{ 
-                scale: [1, 1.8, 1],
-                opacity: [0.5, 0, 0.5]
-              }}
-              transition={{ 
-                duration: 3.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 0.5
-              }}
-              className="absolute h-96 w-96 border-2 border-blue-400/40 rounded-full"
-            />
-
-            {/* Additional Ripple Layer */}
-            <motion.div
-              animate={{ 
-                scale: [1, 2.2, 1],
-                opacity: [0.3, 0, 0.3]
-              }}
-              transition={{ 
+              transition={{
                 duration: 4,
                 repeat: Infinity,
                 ease: "easeInOut",
-                delay: 1
               }}
-              className="absolute h-[500px] w-[500px] border border-blue-400/30 rounded-full"
+              className="absolute h-96 w-96 border border-gray-600/20 rounded-full"
             />
           </div>
         </motion.div>
@@ -171,5 +158,3 @@ function HeroSection() {
 }
 
 export default HeroSection;
-
-
