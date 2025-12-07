@@ -79,7 +79,11 @@ function EventDetails() {
           />
           <div className="card-body">
             <div className="flex items-center justify-between mb-2">
-              <h1 className="text-2xl font-semibold">{event.title}</h1>
+              <h1 className="font-display font-bold text-xl sm:text-2xl lg:text-3xl">
+                <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">
+                  {event.title}
+                </span>
+              </h1>
               {event.type && (
                 <span
                   className={`text-xs px-2 py-0.5 rounded border ${
@@ -92,19 +96,21 @@ function EventDetails() {
                 </span>
               )}
             </div>
-            <div className="text-sm text-gray-300 mb-4">
+            <div className="text-xs sm:text-sm text-gray-300 mb-4">
               {event.dateTime
                 ? new Date(event.dateTime).toLocaleString()
                 : event.date}{" "}
               {event.location ? `• ${event.location}` : ""}
             </div>
-            <p className="text-gray-300 mb-4">
+            <p className="text-sm sm:text-base text-gray-300 mb-4">
               {event.excerpt || event.description || ""}
             </p>
             {event.freebiesIncluded && event.freebiesIncluded.length > 0 && (
               <div>
-                <h3 className="font-semibold mb-1">What you get</h3>
-                <ul className="list-disc list-inside text-sm text-gray-300">
+                <h3 className="font-semibold text-sm sm:text-base mb-1">
+                  What you get
+                </h3>
+                <ul className="list-disc list-inside text-xs sm:text-sm text-gray-300">
                   {event.freebiesIncluded.map((f) => (
                     <li key={f}>{f}</li>
                   ))}

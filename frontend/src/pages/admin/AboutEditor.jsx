@@ -10,7 +10,7 @@ const DEFAULT_ABOUT_DATA = {
   name: "Sahil",
   designation: "Founder",
   description: "Passionate about empowering traders through education and technology. Building XK Trading Floor to create a transparent and supportive trading community.",
-  image: "/assets/leadership/leader-2.jpg",
+  image: "/assets/leadership/Sahil.png",
 };
 
 function getAboutData() {

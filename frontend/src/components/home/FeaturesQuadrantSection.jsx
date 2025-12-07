@@ -125,19 +125,19 @@ function FeaturesQuadrantSection() {
                   </div>
 
                   {/* Title */}
-                  <h3 className="font-display font-extrabold text-lg sm:text-xl lg:text-2xl tracking-tight text-white mb-3">
+                  <h3 className="font-display font-bold text-base sm:text-lg lg:text-xl tracking-tight text-white mb-3">
                     {feature.title}
                   </h3>
 
                   {/* Description */}
-                  <p className="text-sm sm:text-base text-gray-300 font-medium mb-6 flex-grow leading-relaxed">
+                  <p className="text-sm sm:text-base text-gray-300 mb-6 flex-grow leading-relaxed">
                     {feature.description}
                   </p>
 
                   {/* Button or Community Section */}
                   {isCommunity ? (
                     <div>
-                      <p className="text-base sm:text-lg text-white font-medium mb-4">
+                      <p className="text-sm sm:text-base text-white mb-4">
                         Join the community
                       </p>
                       <div className="flex items-center gap-3">

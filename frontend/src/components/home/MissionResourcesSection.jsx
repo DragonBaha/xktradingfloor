@@ -87,10 +87,10 @@ function MissionResourcesSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight mb-6 leading-tight"
+            className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight mb-6 leading-tight"
           >
             Our Mission is to Deliver The Best{" "}
-            <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">
               FREE Actionable Value
             </span>{" "}
             For Traders of ALL Experience Levels!
@@ -107,14 +107,14 @@ function MissionResourcesSection() {
             transition={{ duration: 0.8 }}
             className="card p-6 hover:scale-[1.02] transition-transform duration-300 bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700 flex flex-col items-center text-center"
           >
-            <h3 className="font-display font-extrabold text-xl sm:text-2xl lg:text-3xl tracking-tight text-white mb-4 leading-tight">
+            <h3 className="font-display font-bold text-lg sm:text-xl lg:text-2xl tracking-tight text-white mb-4 leading-tight">
               XK Trading Floor
               <br />
-              <span className="bg-gradient-to-r from-red-400 via-red-300 to-red-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-red-400 via-red-300 to-red-500 bg-clip-text text-transparent font-semibold">
                 Youtube Channel
               </span>
             </h3>
-            <p className="text-base sm:text-lg text-gray-300 mb-6 font-medium max-w-md">
+            <p className="text-sm sm:text-base text-gray-300 mb-6 max-w-md">
               The Biggest Collection of Verified Traders In The World. Covering
               Their Trading Processes, Psychology, How They Handle Risk, How
               They Scaled Capital & So Much More!
@@ -157,6 +157,7 @@ function MissionResourcesSection() {
                       fallback="/assets/placeholder.jpg"
                       alt={`Video ${index + 1}`}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      useCdn={false}
                     />
                     <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                       <div className="h-12 w-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform">
@@ -199,6 +200,7 @@ function MissionResourcesSection() {
                       fallback="/assets/placeholder.jpg"
                       alt={`Video ${index + 1}`}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      useCdn={false}
                     />
                     <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                       <div className="h-12 w-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform">
@@ -281,14 +283,14 @@ function MissionResourcesSection() {
             <div className="absolute top-0 right-0 w-full h-32 bg-gradient-to-b from-blue-500/5 to-transparent opacity-50"></div>
 
             <div className="relative z-10 w-full flex flex-col items-center">
-              <h3 className="font-display font-extrabold text-xl sm:text-2xl lg:text-3xl tracking-tight text-white mb-4 leading-tight">
+              <h3 className="font-display font-bold text-lg sm:text-xl lg:text-2xl tracking-tight text-white mb-4 leading-tight">
                 Join our
                 <br />
-                <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">
                   Podcast!
                 </span>
               </h3>
-              <p className="text-base sm:text-lg text-gray-300 mb-6 font-medium max-w-md">
+              <p className="text-sm sm:text-base text-gray-300 mb-6 max-w-md">
                 Interested in joining our podcast as a guest? Fill out the form to request your spot.
               </p>
               <Link

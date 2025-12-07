@@ -64,12 +64,14 @@ XK Trading Floor is a modern full-stack web application designed to empower trad
 
 **⚠️ Pending Implementation:**
 
-- Events, Products, Podcasts, Courses APIs (controllers exist, routes commented)
-- Protected user endpoints (profile management, etc.)
-- Dashboard statistics endpoints
+- Company update endpoint (controller exists but route not connected: `PUT /api/admin/company/:companyId/updatecompany`)
+- Events, Products, Podcasts, Courses APIs (controllers exist, routes commented in `backend/routes/api/admin/index.js`)
+- Protected user endpoints (profile management, etc.) - `backend/routes/api/protected/index.js` is empty
+- Dashboard statistics endpoints (controllers exist, routes commented)
 - Password reset flow (controllers exist, routes commented)
 - Comment system for blogs
-- Slug-based blog routing (slug field commented in model)
+- Slug-based blog routing (slug field commented in model, controller exists but route not connected)
+- Public review submission endpoint (for authenticated users to submit reviews)
 
 ### Key Features
 
@@ -743,7 +745,11 @@ The application uses React Router for client-side routing. All routes are define
 | `/admin/companies/:companyId`      | `AdminCompanyDetails` | Company details (admin view)   |
 | `/admin/about/edit`                | `AboutEditor`         | Edit about page content        |
 
-**Note:** All protected routes use the `ProtectedRoute` component which checks authentication and role requirements. The frontend references roles like "SubAdmin" and "supervisor" that are not defined in the backend constants, which may cause authorization issues.
+**Note:** All protected routes use the `ProtectedRoute` component which checks authentication and role requirements. 
+
+**⚠️ Important:** The backend defines three roles: Admin, User, and Operator (see `backend/utils/constants.js`). However:
+- The frontend may reference additional roles like "SubAdmin" and "supervisor" that are not defined in backend constants
+- Admin routes in `backend/routes/api/index.js` currently allow Admin, Operator, AND User roles, which may be too permissive. Consider restricting admin routes to Admin and Operator only.
 
 ## 📡 API Documentation
 
@@ -851,7 +857,14 @@ All admin blog endpoints require authentication and admin role (Admin or SubAdmi
 - `search` (string) - Search in title, excerpt, content
 - `featured` (boolean) - Filter featured posts (pass 'true' as string)
 
-**Note:** The `slug` field exists in the blog model but is currently commented out. The `getBlogBySlug` controller method exists in `blog.controller.js` but the route is not connected in `backend/routes/api/public/blog.routes.js`. To enable slug functionality, uncomment the slug field in the model and add the route.
+**⚠️ Missing Route:** The `slug` field exists in the blog model but is currently commented out. The `getBlogBySlug` controller method exists in `blog.controller.js` but the route is **not connected** in `backend/routes/api/public/blog.routes.js`. 
+
+To enable slug functionality:
+1. Uncomment the slug field in `backend/models/blog.model.js`
+2. Add route to `backend/routes/api/public/blog.routes.js`:
+   ```javascript
+   router.get('/:slug', blogController.getBlogBySlug);
+   ```
 
 ### Admin Company Endpoints
 
@@ -875,7 +888,11 @@ All admin company endpoints require authentication and admin/operator role:
 | PUT    | `/api/admin/company/:companyId/updatepromocode/:promoId` | Update promo code        | ✅ Admin/Operator               |
 | DELETE | `/api/admin/company/:companyId/deletepromocode/:promoId` | Delete promo code        | ✅ Admin/Operator               |
 
-**Note:** Update endpoint (`updateCompany()`) exists in `company.controller.js` but the route (`PUT /api/admin/company/:companyId/updatecompany`) is not connected in `backend/routes/api/admin/company.routes.js`.
+**⚠️ Missing Route:** Update endpoint (`updateCompany()`) exists in `company.controller.js` (line 213) but the route (`PUT /api/admin/company/:companyId/updatecompany`) is **not connected** in `backend/routes/api/admin/company.routes.js`. To enable company updates, add:
+
+```javascript
+router.put("/:companyId/updatecompany", pdfUpload.fileUpload(...), companyController.updateCompany);
+```
 
 ### Public Company Endpoints
 
@@ -900,6 +917,8 @@ All admin review endpoints require authentication and admin role:
 | POST   | `/api/admin/review/addReview`                 | Create review          | ✅ Admin       |
 | GET    | `/api/admin/review/:userId/getreviewsbyusers` | Get reviews by user ID | ✅ Admin       |
 | DELETE | `/api/admin/review/:reviewId/deletereview`    | Delete review          | ✅ Admin       |
+
+**⚠️ Note:** Public review submission endpoint for authenticated users is not yet implemented. Users cannot currently submit reviews through the API.
 
 ### Settings Endpoints
 
@@ -1447,7 +1466,7 @@ The application supports multiple deployment environments:
     - Public API endpoints for published blogs
   - **Company Management System** (Admin/Operator):
     - Create, read, and delete operations
-    - Update operation (controller ready, route pending)
+    - ⚠️ Update operation (controller exists at line 213 in `company.controller.js`, but route **not connected** in `backend/routes/api/admin/company.routes.js`)
     - Public API endpoint for approved companies
     - Rating aggregation (auto-calculated)
     - Promo code management (full CRUD - routes connected)
@@ -1484,10 +1503,12 @@ The application supports multiple deployment environments:
 
   - **Protected API endpoints:**
 
-    - ⚠️ User profile management - Not implemented
+    - ⚠️ User profile management - Not implemented (`backend/routes/api/protected/index.js` is empty)
     - ⚠️ User-specific operations - Not implemented
-    - ⚠️ Review submission (public endpoint) - Controller exists but route not in protected
+    - ⚠️ Review submission - Not implemented (no public or protected endpoint for users to submit reviews)
     - ⚠️ Event registration - Not implemented
+    - ⚠️ User's own blog management - Not implemented
+    - ⚠️ User's own reviews management - Not implemented
 
   - **Admin API endpoints:**
     - ✅ Blog management - Fully implemented
@@ -1524,25 +1545,44 @@ The application supports multiple deployment environments:
 
 1. **Role Mismatch Between Frontend and Backend**: 
    - **Backend** defines three roles: Admin, User, Operator (see `backend/utils/constants.js`)
-   - **Frontend** references additional roles: "SubAdmin" and "supervisor" (found in `frontend/src/components/dashboard/ProtectedRoute.jsx`, `frontend/src/pages/Login.jsx`, etc.)
-   - These roles are not defined in backend constants and may cause authorization issues
-   - **Admin Route Authorization**: The admin routes in `backend/routes/api/index.js` allow Admin, Operator, and User roles, which may be too permissive. Consider restricting admin routes to Admin and Operator only.
+   - **Frontend** may reference additional roles: "SubAdmin" and "supervisor" that are not defined in backend constants
+   - These undefined roles may cause authorization issues
+   - **⚠️ Admin Route Authorization Issue**: The admin routes in `backend/routes/api/index.js` (line 26-30) currently allow Admin, Operator, **AND User** roles, which is likely too permissive. Consider restricting admin routes to Admin and Operator only:
+     ```javascript
+     authorization([constants.roles.admin, constants.roles.operator])
+     ```
 
-2. **Missing Slug Route**: The `getBlogBySlug` controller method exists in `blog.controller.js` but the route is not connected in `backend/routes/api/public/blog.routes.js`. To enable slug functionality:
+2. **Missing Slug Route**: The `getBlogBySlug` controller method exists in `blog.controller.js` but the route is **not connected** in `backend/routes/api/public/blog.routes.js`. To enable slug functionality:
    - Uncomment the slug field in `backend/models/blog.model.js`
    - Add route: `router.get('/:slug', blogController.getBlogBySlug);` to `backend/routes/api/public/blog.routes.js`
+   - Ensure slug generation logic is implemented when creating/updating blogs
 
-3. **Company Update Route**: The company controller has `updateCompany()` method implemented, but the route is not connected in `backend/routes/api/admin/company.routes.js`. This endpoint needs to be added:
+3. **Company Update Route**: The company controller has `updateCompany()` method implemented (line 213 in `company.controller.js`), but the route is **not connected** in `backend/routes/api/admin/company.routes.js`. This endpoint needs to be added:
 
    - `PUT /api/admin/company/:companyId/updatecompany` - Update company
+   
+   **Implementation needed:**
+   ```javascript
+   router.put(
+     "/:companyId/updatecompany",
+     pdfUpload.fileUpload("companies", ["pdf", "image"], [{ name: "logo", maxCount: 1 }]),
+     companyController.updateCompany
+   );
+   ```
 
    **Note:** Delete and promo code routes are already implemented and connected.
 
-4. **Protected Routes**: The protected routes file (`backend/routes/api/protected/index.js`) exists but is empty. User-specific protected endpoints (profile management, review submission, event registration) need to be implemented.
+4. **Protected Routes**: The protected routes file (`backend/routes/api/protected/index.js`) exists but is **completely empty**. User-specific protected endpoints need to be implemented:
+   - User profile management (GET, PUT `/api/protected/profile`)
+   - Review submission (POST `/api/protected/reviews`)
+   - Event registration (POST `/api/protected/events/:eventId/register`)
+   - User's own blog management
+   - User's own reviews management
+   - Password update (currently in auth routes, could be moved here)
 
 5. **Public Blog Endpoint Path**: The actual endpoint is `/api/public/blogs/getpublishedblogs` (not `/api/public/blogs`). The README has been updated to reflect the correct path.
 
-6. **Public Company Endpoint**: The public company endpoint uses POST method (`/api/public/companies/getallcompanies`) instead of GET, and accepts filters in the request body rather than query parameters.
+6. **Public Company Endpoint**: The public company endpoint uses POST method (`/api/public/companies/getallcompanies`) instead of GET, and accepts filters in the request body rather than query parameters. This is intentional based on the current implementation.
 
 ## 🧪 Development Guidelines
 
@@ -1593,10 +1633,10 @@ For support, please contact the development team or visit the contact page at `/
 
 Potential features for future development:
 
-- **Company Management**: Connect update route (`PUT /api/admin/company/:companyId/updatecompany` - controller exists but route missing)
+- **Company Management**: Connect update route (`PUT /api/admin/company/:companyId/updatecompany` - controller exists at line 213 in `company.controller.js` but route **not connected** in `backend/routes/api/admin/company.routes.js`)
 - **Content Management**: Complete CRUD APIs for Events, Products, Podcasts, Courses
 - **User Features**: Profile management, protected user endpoints, event registration
-- **Review System**: Complete review moderation, status updates, public review submission endpoint
+- **Review System**: Complete review moderation, status updates, public/protected review submission endpoint for authenticated users
 - **Blog System**: Enable slug field in model (`backend/models/blog.model.js`), add slug route to `backend/routes/api/public/blog.routes.js`, complete slug-based routing
 - **Real-time Features**: Chat or Discord integration, live streaming for webinars
 - **Trading Tools**: Advanced trading tools and calculators
@@ -1609,8 +1649,14 @@ Potential features for future development:
 - **Social**: Social media integration
 - **Security**: Two-factor authentication, password reset flow completion
 - **Permissions**: Advanced permission system refinement
-- **Protected Routes**: Implement user-specific protected endpoints in `backend/routes/api/protected/index.js` (currently empty)
-- **Role Consistency**: Align frontend role references (SubAdmin, supervisor) with backend role definitions or add these roles to backend constants
+- **Protected Routes**: Implement user-specific protected endpoints in `backend/routes/api/protected/index.js` (currently **completely empty**):
+  - User profile management
+  - Review submission
+  - Event registration
+  - User's own content management
+- **Role Consistency**: 
+  - Align frontend role references (SubAdmin, supervisor) with backend role definitions or add these roles to backend constants
+  - Fix admin route authorization in `backend/routes/api/index.js` to restrict admin routes to Admin and Operator only (currently allows User role which is too permissive)
 
 ---
 

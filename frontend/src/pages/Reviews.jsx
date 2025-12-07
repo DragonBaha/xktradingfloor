@@ -194,10 +194,18 @@ export default function Reviews() {
       <section className="relative overflow-hidden bg-black">
         {/* <section className="relative overflow-hidden bg-gradient-to-b from-green-500/10 via-transparent to-transparent"> */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8 text-center">
-          <h1 className="font-display font-extrabold text-3xl sm:text-5xl mb-3">
-            {heroTitle}
+          <h1 className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl mb-3">
+            {activeCategory ? (
+              <>
+                Compare <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">{categoryLabels[activeCategory]}</span>
+              </>
+            ) : (
+              <>
+                Compare <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Trading Companies</span>
+              </>
+            )}
           </h1>
-          <p className="text-gray-300 max-w-2xl mx-auto">{heroDescription}</p>
+          <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto">{heroDescription}</p>
         </div>
       </section>
 

@@ -14,9 +14,9 @@ const steps = [
   {
     id: 1,
     number: "01",
-    title: "Create an Account With XK Trading Floor",
+    title: "Join XK Trading Floor & Unlock Your Trader's Hub",
     description:
-      "To get started with XK Trading Floor, the first step is to create an account on our website. This simple process will give you access to our range of trading resources, live sessions, and exclusive content tailored for traders at all levels.",
+      "Sign up to access everything in one place — verified broker reviews, prop firm insights, forex academies, and our private trading community. Your account gives you access to resources, mentorship opportunities, and exclusive content made for traders who want real results.",
     image: "/assets/create_account.jpg",
     ctaText: "Get Started",
     ctaLink: "/signup",
@@ -25,9 +25,9 @@ const steps = [
   {
     id: 2,
     number: "02",
-    title: "Follow up Our Socials To Stay Updated",
+    title: "Follow Our Socials & Stay Ahead",
     description:
-      "Stay ahead in the trading game by following XK Trading Floor on our social media channels. By keeping up with our socials, you'll be the first to know about new updates, exciting news, and valuable insights.",
+      "Trading moves fast — stay connected with our latest podcasts, trader interviews, and updates on events and workshops across India. Follow XK Trading Floor on YouTube, Instagram, and Discord to never miss trading insights or new prop firm offers.",
     image: "/assets/follow_socials.jpg",
     ctaText: "Follow Us",
     ctaLink: "/contact",
@@ -36,9 +36,9 @@ const steps = [
   {
     id: 3,
     number: "03",
-    title: "Final Instruction",
+    title: "Join Our Whop & Start Trading With Support",
     description:
-      "Once you've joined our Discord group, please reach out to an admin or support team member and let them know, \"I want to join the online academy.\" From there, we'll arrange a call to discuss your previous trading experience.",
+      "Once you're in, connect directly with our team and community. Ask questions, get feedback, share your analysis, and take part in live sessions or reviews from top traders and educators. Whether you're learning or trading live, we're here to help you level up.",
     image: "/assets/join_academy.jpg",
     ctaText: "Join Discord",
     ctaLink: "/contact",
@@ -92,12 +92,12 @@ function StepCard({ step, index, isInView }) {
         <div className="relative z-10 h-full flex flex-col justify-between p-6">
           <div>
             <div
-              className={`text-4xl font-bold ${colors.text} opacity-20 mb-2`}
+              className={`text-5xl sm:text-6xl font-extrabold ${colors.text} mb-3 leading-none`}
             >
               {step.number}
             </div>
-            <h3 className="font-display font-extrabold text-xl sm:text-2xl tracking-tight mb-4 text-white">{step.title}</h3>
-            <p className="text-lg sm:text-xl text-gray-300 font-medium leading-relaxed line-clamp-4">
+            <h3 className="font-display font-semibold text-sm sm:text-base tracking-tight mb-3 text-white">{step.title}</h3>
+            <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
               {step.description}
             </p>
           </div>
@@ -187,18 +187,17 @@ function HowItWorks() {
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight mb-6 leading-tight"
+            className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight mb-4 leading-tight"
           >
-            How <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent">Does It Work?</span>
+            How <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Does It Work?</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-xl sm:text-2xl text-gray-300 font-medium max-w-2xl mx-auto"
+            className="text-sm sm:text-base text-gray-400 max-w-2xl mx-auto mb-2"
           >
-            Follow these simple steps to begin your trading journey with XK
-            Trading Floor
+            Follow these simple steps to start your journey with XK Trading Floor — learn, connect, and grow as a trader.
           </motion.p>
         </motion.div>
 

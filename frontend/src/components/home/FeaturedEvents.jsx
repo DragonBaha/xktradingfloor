@@ -21,9 +21,9 @@ function EventCard({ evt, onClick }) {
         <ImageWithFallback src={evt.image || '/assets/placeholder.jpg'} fallback="/assets/placeholder.jpg" alt={evt.title} className="h-full w-full object-cover" />
       </div>
       <div className="card-body">
-        <div className="text-sm text-gray-400 mb-2">{formatDate(evt.dateTime || evt.date)}</div>
-        <div className="font-display font-extrabold text-xl sm:text-2xl tracking-tight mb-2">{evt.title}</div>
-        <div className="text-lg text-gray-300 font-medium line-clamp-2">{evt.excerpt || evt.description || ''}</div>
+        <div className="text-xs sm:text-sm text-gray-400 mb-2">{formatDate(evt.dateTime || evt.date)}</div>
+        <div className="font-display font-semibold text-base sm:text-lg tracking-tight mb-2">{evt.title}</div>
+        <div className="text-sm sm:text-base text-gray-300 line-clamp-2">{evt.excerpt || evt.description || ''}</div>
       </div>
     </motion.div>
   );
@@ -57,9 +57,9 @@ function FeaturedEvents() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight mb-6 leading-tight"
+            className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight mb-6 leading-tight"
           >
-            Upcoming <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent">Events & Webinars</span>
+            Upcoming <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Events & Webinars</span>
           </motion.h2>
         </motion.div>
         <div className="flex items-center justify-between mb-4">

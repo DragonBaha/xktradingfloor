@@ -21,7 +21,7 @@ export default function HeroSection({ title, subtitle, background = 'default', b
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl"
+          className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl"
         >
           {title}
         </motion.h1>
@@ -31,7 +31,7 @@ export default function HeroSection({ title, subtitle, background = 'default', b
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="mt-3 text-gray-300 max-w-3xl mx-auto"
+            className="mt-3 text-sm sm:text-base text-gray-300 max-w-3xl mx-auto"
           >
             {subtitle}
           </motion.p>

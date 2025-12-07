@@ -59,29 +59,34 @@ function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl xl:text-7xl tracking-tight mb-6 leading-tight"
+            className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight mb-6 leading-tight"
           >
-            Begin Your <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent">Trading Journey</span> With Our Community
+            Find the Best <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Brokers, Prop Firms & Academies</span> — All in One Place
           </motion.h1>
-          <motion.p
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-xl sm:text-2xl text-gray-300 mb-10 font-medium"
+            className="text-sm sm:text-base text-gray-300 mb-8 space-y-3 leading-relaxed"
           >
-            Effective. Profitable. Simple.
-          </motion.p>
+            <p>
+              Compare verified brokers and prop firms, find real trading education, and join India's most active trading community.
+            </p>
+            <p>
+              Earn rebates, rewards, and knowledge - all under one platform.
+            </p>
+          </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
             className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4"
           >
-            <a href="#how-it-works" className="btn rounded-full btn-secondary border-2 border-gray-600 hover:border-gray-500 bg-gray-800/50 hover:bg-gray-800 text-white hover:scale-105 transition-all">
-              How does it work?
-            </a>
-            <Link to="/signup" className="btn rounded-full btn-primary bg-white text-gray-900 hover:bg-gray-100 border-2 border-white hover:scale-105 transition-all shadow-lg">
-              Get Started <ArrowRight className="ml-2 h-4 w-4" />
+            <Link to="/reviews" className="btn rounded-full btn-primary bg-white text-gray-900 hover:bg-gray-100 border-2 border-white hover:scale-105 transition-all shadow-lg px-6 py-3">
+              Find the Right Broker
+            </Link>
+            <Link to="/academy" className="btn rounded-full btn-secondary border-2 border-gray-600 hover:border-gray-500 bg-gray-800/50 hover:bg-gray-800 text-white hover:scale-105 transition-all px-6 py-3">
+              Join XK Trading Floor
             </Link>
           </motion.div>
         </motion.div>

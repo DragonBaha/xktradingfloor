@@ -126,8 +126,8 @@ function BlogPost() {
               />
             )}
           </div>
-          <h1 className="text-3xl font-semibold">{post.title}</h1>
-          <div className="text-sm text-gray-400 mt-1">{post.author} • {post.date} • {post.readTime}</div>
+          <h1 className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight">{post.title}</h1>
+          <div className="text-xs sm:text-sm text-gray-400 mt-1">{post.author} • {post.date} • {post.readTime}</div>
         </div>
       </motion.section>
 
@@ -136,13 +136,13 @@ function BlogPost() {
         <BlogAuthorInfo author={post.authorInfo} />
 
         <div className="mt-10">
-          <h3 className="text-xl font-semibold mb-4">Related Posts</h3>
+          <h3 className="font-display font-bold text-lg sm:text-xl mb-4">Related Posts</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {related.map(r => (
               <div key={r.id} className="card cursor-pointer" onClick={() => navigate(`/blog/${r.id}`)}>
                 <div className="card-body">
                   <div className="text-xs text-blue-300">{r.category}</div>
-                  <div className="font-semibold mt-1 line-clamp-2">{r.title}</div>
+                  <div className="font-semibold text-sm sm:text-base mt-1 line-clamp-2">{r.title}</div>
                 </div>
               </div>
             ))}
@@ -151,8 +151,8 @@ function BlogPost() {
         </div>
 
         <div className="mt-10">
-          <h3 className="text-xl font-semibold mb-2">Comments</h3>
-          <div className="text-sm text-gray-400">Comments will be available after backend integration.</div>
+          <h3 className="font-display font-bold text-lg sm:text-xl mb-2">Comments</h3>
+          <div className="text-xs sm:text-sm text-gray-400">Comments will be available after backend integration.</div>
         </div>
 
         <div className="mt-8"><Link to="/blog" className="text-accent hover:underline">← Back to Blog</Link></div>

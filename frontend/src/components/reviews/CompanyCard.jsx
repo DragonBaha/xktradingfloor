@@ -29,8 +29,8 @@ function CompanyCard({ company }) {
               src={company.logo}
               fallback="/assets/placeholder.jpg"
               alt={company.name}
-              className="h-full w-full object-cover"
               useDynamicFallback={true}
+              className="h-full w-full object-cover"
             />
           </div>
           <div className="flex-1 min-w-0">

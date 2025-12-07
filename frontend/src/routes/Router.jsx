@@ -21,6 +21,8 @@ import Signup from "../pages/Signup.jsx";
 import Login from "../pages/Login.jsx";
 import About from "../pages/About.jsx";
 import Contact from "../pages/Contact.jsx";
+import PrivacyPolicy from "../pages/PrivacyPolicy.jsx";
+import Terms from "../pages/Terms.jsx";
 import AdminDashboard from "../pages/AdminDashboard.jsx";
 import Dashboard from "../pages/Dashboard.jsx";
 import Profile from "../pages/Profile.jsx";
@@ -127,6 +129,8 @@ export default function AppRouter() {
         <Route path="/login" element={<Login />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<Terms />} />
         <Route
           path="/dashboard"
           element={

@@ -19,16 +19,16 @@ function HeroAcademy() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="font-display font-extrabold text-3xl sm:text-5xl lg:text-6xl"
+          className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl"
         >
-          Master the Markets with Expert-Led Programs
+          Master the <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Markets</span> with Expert-Led Programs
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="mt-4 text-gray-300 max-w-3xl mx-auto"
+          className="mt-4 text-sm sm:text-base text-gray-300 max-w-3xl mx-auto"
         >
           Live workshops, strategy sessions, and trading bootcamps.
         </motion.p>

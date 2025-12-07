@@ -18,31 +18,44 @@ function WhatIsXK() {
           transition={{ duration: 0.8 }}
           className="text-center"
         >
+          <motion.h3
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+            className="text-xs sm:text-sm text-gray-400 uppercase tracking-wider mb-4"
+          >
+            What is XK Trading Floor?
+          </motion.h3>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl xl:text-6xl tracking-tight mb-6 leading-tight"
+            className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight mb-6 leading-tight"
           >
-            Its a{" "}
-            <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent">
-              Traders Empire
+            It's More Than a Trading Community —{" "}
+            <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">
+              It's a Traders' Ecosystem.
             </span>
-            .
           </motion.h2>
-          <motion.p
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-xl sm:text-2xl text-gray-300 font-medium max-w-3xl mx-auto"
+            className="text-sm sm:text-base text-gray-300 max-w-4xl mx-auto space-y-3 leading-relaxed"
           >
-            A place where you can learn trading, explore and test EAs,
-            indicators, and strategies. Join a community that's always ahead of
-            the curve and discover the tools and knowledge you need to succeed
-            in trading.
-          </motion.p>
+            <p>
+              XK Trading Floor is a growing ecosystem built for traders who want to learn, grow, and earn — all in one place.
+            </p>
+            <p>
+              Explore and test strategies, discover top brokers, prop firms, and academies, and stay ahead with the latest tools, podcasts, and events designed for traders who take their craft seriously.
+            </p>
+            <p>
+              Join a community that believes in real results, transparency, and growth through collaboration.
+            </p>
+          </motion.div>
         </motion.div>
       </div>
     </section>

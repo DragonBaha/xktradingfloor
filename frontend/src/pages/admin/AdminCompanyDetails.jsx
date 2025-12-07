@@ -247,6 +247,7 @@ function AdminCompanyDetailsContent() {
                     fallback="/assets/placeholder.jpg"
                     alt={company.name}
                     className="h-full w-full object-cover"
+                    useDynamicFallback={true}
                   />
                 </div>
                 <div>

@@ -150,7 +150,9 @@ function CompanyDetails() {
               <div className="flex-1">
                 <div className="flex items-start justify-between gap-4 mb-2">
                   <div>
-                    <h1 className="text-3xl font-bold mb-2">{company.name}</h1>
+                    <h1 className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl mb-2">
+                      <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">{company.name}</span>
+                    </h1>
                     <div className="flex items-center gap-3 mb-3">
                       <span className="text-sm px-3 py-1 rounded bg-blue-500/20 text-blue-400">
                         {company.category}
@@ -171,7 +173,7 @@ function CompanyDetails() {
                     </div>
                   </div>
                 </div>
-                <p className="text-gray-300 mb-4 leading-relaxed">
+                <p className="text-sm sm:text-base text-gray-300 mb-4 leading-relaxed">
                   {company.description || company.details}
                 </p>
                 <a
@@ -191,8 +193,8 @@ function CompanyDetails() {
         {validPromoCodes.length > 0 && (
           <div className="card">
             <div className="card-body">
-              <h2 className="text-xl font-semibold mb-4">
-                Promo Codes & Offers
+              <h2 className="font-display font-bold text-lg sm:text-xl mb-4">
+                <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Promo Codes</span> & Offers
               </h2>
               <div className="space-y-4">
                 {featuredPromos.map((promo) => (
@@ -275,7 +277,9 @@ function CompanyDetails() {
         <div className="card">
           <div className="card-body">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold">User Reviews</h2>
+              <h2 className="font-display font-bold text-lg sm:text-xl">
+                <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">User</span> Reviews
+              </h2>
               {!user && (
                 <Link to="/login" className="btn btn-secondary">
                   Login to Review

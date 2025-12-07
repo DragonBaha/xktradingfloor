@@ -1,6 +1,7 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 import ProtectedRoute from "../components/dashboard/ProtectedRoute.jsx";
 import {
   getCompanyById,
@@ -40,10 +41,33 @@ function CompanyForm() {
   const [promoSubmitting, setPromoSubmitting] = React.useState(false);
   const [editingPromoIndex, setEditingPromoIndex] = React.useState(null);
 
-  const user = (() => {
-    const s = sessionStorage.getItem("xktf_user");
-    return s ? JSON.parse(s) : null;
-  })();
+  // Get user from multiple sources (sessionStorage, cookies, or Redux)
+  const reduxUser = useSelector((state) => state.auth?.user);
+  const user =
+    reduxUser ||
+    (() => {
+      try {
+        // Check sessionStorage
+        const s = sessionStorage.getItem("xktf_user");
+        if (s) return JSON.parse(s);
+
+        // Check cookies
+        if (typeof window !== "undefined") {
+          const userCookie = document.cookie
+            .split("; ")
+            .find((row) => row.startsWith("xktf_user="));
+          if (userCookie) {
+            const userString = decodeURIComponent(
+              userCookie.split("=").slice(1).join("=")
+            );
+            return JSON.parse(userString);
+          }
+        }
+      } catch (error) {
+        console.error("Error getting user:", error);
+      }
+      return null;
+    })();
 
   React.useEffect(() => {
     if (isEdit && companyId) {
@@ -87,7 +111,16 @@ function CompanyForm() {
       } else {
         // Create company first
         const result = await createCompany(companyData);
-        const newCompanyId = result?.data?._id || result?.data?.id;
+        // Backend returns: { success: true, message: "...", data: { _id, id, ... } }
+        // Axios response: result.data = { success: true, message: "...", data: { _id, id, ... } }
+        // So company object is at result.data.data
+        const createdCompany = result?.data?.data || result?.data;
+        const newCompanyId =
+          createdCompany?._id ||
+          createdCompany?.id ||
+          (createdCompany?._id?.toString
+            ? createdCompany._id.toString()
+            : null);
 
         if (newCompanyId) {
           // After creating company, add all promo codes that were added during creation

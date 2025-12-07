@@ -68,13 +68,10 @@ function Contact() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.8 }}
               >
-                <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight mb-4">
-                  Send a{" "}
-                  <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent">
-                    Message
-                  </span>
+                <h2 className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight mb-4">
+                  Send a <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Message</span>
                 </h2>
-                <p className="text-xl sm:text-2xl text-gray-300 font-medium mb-8">
+                <p className="text-sm sm:text-base text-gray-300 mb-8">
                   We usually respond within 1–2 business days
                 </p>
               </motion.div>
@@ -167,11 +164,11 @@ function Contact() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.8, delay: 0.2 }}
               >
-                <h3 className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight mb-6">
-                  Contact Details
+                <h3 className="font-display font-bold text-xl sm:text-2xl tracking-tight mb-6">
+                  <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Contact</span> Details
                 </h3>
                 <ul className="space-y-4 mb-8">
-                  <li className="flex items-center gap-3 text-base text-gray-300">
+                  <li className="flex items-center gap-3 text-sm sm:text-base text-gray-300">
                     <Mail
                       className="text-blue-400 h-5 w-5"
                       aria-hidden="true"
@@ -183,14 +180,14 @@ function Contact() {
                       support@xktrading.com
                     </a>
                   </li>
-                  <li className="flex items-center gap-3 text-base text-gray-300">
+                  <li className="flex items-center gap-3 text-sm sm:text-base text-gray-300">
                     <Phone
                       className="text-blue-400 h-5 w-5"
                       aria-hidden="true"
                     />
                     <span>+1 (555) 010-9876</span>
                   </li>
-                  <li className="flex items-center gap-3 text-base text-gray-300">
+                  <li className="flex items-center gap-3 text-sm sm:text-base text-gray-300">
                     <MessageSquare
                       className="text-blue-400 h-5 w-5"
                       aria-hidden="true"
@@ -209,8 +206,8 @@ function Contact() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.8, delay: 0.4 }}
               >
-                <h3 className="font-display font-extrabold text-xl sm:text-2xl tracking-tight mb-4">
-                  Follow Us
+                <h3 className="font-display font-bold text-lg sm:text-xl tracking-tight mb-4">
+                  <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Follow</span> Us
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                   <a

@@ -52,16 +52,16 @@ function PodcastSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight mb-6 leading-tight"
+            className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight mb-6 leading-tight"
           >
-            Recent <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent">Podcast & Video</span>
+            Recent <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Podcast & Video</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-xl sm:text-2xl text-gray-300 font-medium max-w-2xl mx-auto"
+            className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto"
           >
             Watch our latest content and learn from expert traders
           </motion.p>
@@ -86,6 +86,7 @@ function PodcastSection() {
                   fallback="/assets/placeholder.jpg"
                   alt={video.title}
                   className="w-full h-64 object-cover rounded-t-lg"
+                  useCdn={false}
                 />
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                   <div className="h-16 w-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border-2 border-white/30 group-hover:scale-110 transition-transform">
@@ -94,7 +95,7 @@ function PodcastSection() {
                 </div>
               </div>
               <div className="card-body">
-                <h3 className="font-display font-extrabold text-xl sm:text-2xl tracking-tight mb-1 line-clamp-2">{video.title}</h3>
+                <h3 className="font-display font-semibold text-base sm:text-lg tracking-tight mb-1 line-clamp-2">{video.title}</h3>
               </div>
             </motion.a>
           ))}

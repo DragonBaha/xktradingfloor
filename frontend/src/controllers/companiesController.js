@@ -37,10 +37,36 @@ async function isMockModeEnabled() {
   return false;
 }
 
-// Helper to get current user from session
+// Helper to get current user from session, cookies, or Redux
 function getCurrentUser() {
-  const s = sessionStorage.getItem("xktf_user");
-  return s ? JSON.parse(s) : null;
+  // First check sessionStorage
+  try {
+    const s = sessionStorage.getItem("xktf_user");
+    if (s) {
+      return JSON.parse(s);
+    }
+  } catch (error) {
+    // Silently fail
+  }
+
+  // Then check cookies
+  try {
+    if (typeof window !== "undefined") {
+      const userCookie = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("xktf_user="));
+      if (userCookie) {
+        const userString = decodeURIComponent(
+          userCookie.split("=").slice(1).join("=")
+        );
+        return JSON.parse(userString);
+      }
+    }
+  } catch (error) {
+    // Silently fail
+  }
+
+  return null;
 }
 
 // Helper to load companies from JSON

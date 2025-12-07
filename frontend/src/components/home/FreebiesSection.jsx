@@ -26,16 +26,16 @@ function FreebiesSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight mb-6 leading-tight"
+            className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight mb-6 leading-tight"
           >
-            Access Our <span className="bg-gradient-to-r from-green-400 via-green-300 to-green-500 bg-clip-text text-transparent">Freebies</span>
+            Access Our <span className="bg-gradient-to-r from-green-400 via-green-300 to-green-500 bg-clip-text text-transparent font-semibold">Freebies</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-xl sm:text-2xl text-gray-300 font-medium max-w-2xl mx-auto"
+            className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto"
           >
             Get free trading tools and resources to enhance your trading journey
           </motion.p>
@@ -66,9 +66,9 @@ function FreebiesSection() {
                   <div className="h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
                     <TrendingUp className="h-5 w-5 text-green-400" />
                   </div>
-                  <h3 className="font-display font-extrabold text-xl sm:text-2xl tracking-tight">Simple XKTF Trading Indicator</h3>
+                  <h3 className="font-display font-bold text-base sm:text-lg tracking-tight">Simple XKTF Trading Indicator</h3>
                 </div>
-                <p className="text-lg text-gray-300 font-medium mb-4 line-clamp-3">
+                <p className="text-sm sm:text-base text-gray-300 mb-4 line-clamp-3">
                   I Build This indicator based on a simple strategy While I do Analysis on Chart Check this Indicator out.
                 </p>
                 <Link to="/signup" className="btn inline-flex items-center justify-center w-full rounded-full bg-green-500 hover:bg-green-600 text-white border-2 border-green-500 hover:border-green-600 hover:scale-105 transition-all shadow-lg shadow-green-500/20 px-6 py-3">
@@ -105,9 +105,9 @@ function FreebiesSection() {
                   <div className="h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
                     <FileText className="h-5 w-5 text-green-400" />
                   </div>
-                  <h3 className="font-display font-extrabold text-xl sm:text-2xl tracking-tight">Trading Journal</h3>
+                  <h3 className="font-display font-bold text-base sm:text-lg tracking-tight">Trading Journal</h3>
                 </div>
-                <p className="text-lg text-gray-300 font-medium mb-4 line-clamp-3">
+                <p className="text-sm sm:text-base text-gray-300 mb-4 line-clamp-3">
                   Our trade journal is perfectly set up to help you keep track of all your trades. It has our 
                   strategy built into it and helps you have statistics on each setup and entry.
                 </p>

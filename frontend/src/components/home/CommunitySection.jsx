@@ -26,24 +26,29 @@ function CommunitySection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight mb-6 leading-tight"
+              className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight mb-6 leading-tight"
             >
-              Join Our <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent">Trading Community</span>
+              Trade, Learn & Grow — <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Together.</span>
             </motion.h2>
-            <motion.p
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-xl sm:text-2xl text-gray-300 font-medium mb-8"
+              className="text-sm sm:text-base text-gray-300 mb-8 space-y-4 leading-relaxed"
             >
-              Looking for a community of traders which can help you understand more about trading 
-              not just technical but also fundamental and free? Our non-toxic and friendly atmosphere 
-              makes us the perfect choice for anyone looking to trade forex in a supportive and 
-              collaborative environment.
-            </motion.p>
+              <p>
+                Looking for a community that helps you master trading — not just technicals, but mindset and strategy too?
+              </p>
+              <p>
+                At XK Trading Floor, we've built a supportive, non-toxic space where traders share insights, discuss markets, and grow collectively.
+              </p>
+              <p>
+                Whether you're new or experienced, you'll find a team ready to help you reach the next level.
+              </p>
+            </motion.div>
             <Link to="/academy" className="btn inline-flex items-center justify-center rounded-full bg-white text-gray-900 hover:bg-gray-100 border-2 border-white hover:scale-105 transition-all shadow-lg px-6 py-3 font-medium">
-              Join Now
+              Join the Community
             </Link>
           </motion.div>
           <motion.div
