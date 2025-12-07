@@ -134,25 +134,8 @@ export async function getAllReviews(filters = {}) {
 export async function getReviewsByCompanyId(companyId) {
   const mockMode = await isMockModeEnabled();
 
-  // Backend API call (ready for integration)
-  // Uncomment when backend is ready:
-  /*
-  try {
-    const response = await api.get(`/public/reviews/company/${companyId}`);
-    if (mockMode) {
-      // If mock mode is ON, merge with mock data
-      const { data: mockData } = await getAllReviews({ companyId });
-      return { data: [...response.data, ...mockData] };
-    }
-    return response;
-  } catch (error) {
-    if (mockMode) {
-      console.warn('Backend unavailable, using mock data');
-    } else {
-      throw error;
-    }
-  }
-  */
+  // Backend API call - no public endpoint exists for reviews
+  // Reviews are accessed via admin endpoints or company-specific endpoints
 
   // Mock data implementation
   const { data } = await getAllReviews({ companyId });

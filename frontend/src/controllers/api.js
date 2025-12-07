@@ -3,9 +3,9 @@ import axios from "axios";
 const inferDefaultBaseUrl = () => {
   const hostname =
     typeof window !== "undefined" ? window.location.hostname : "localhost";
-  // Default to port 3000 to match backend configuration (backend runs on port 3000 by default)
+  // Default to port 8000 to match backend configuration (backend runs on port 8000)
   const fallbackPort =
-    import.meta.env.VITE_BACKEND_PORT || process.env.VITE_BACKEND_PORT || 3000;
+    import.meta.env.VITE_BACKEND_PORT || process.env.VITE_BACKEND_PORT || 8000;
   return `http://${hostname}:${fallbackPort}/api`;
 };
 

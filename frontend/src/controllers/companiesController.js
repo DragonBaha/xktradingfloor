@@ -61,29 +61,8 @@ async function saveCompanies(companies) {
 export async function getAllCompanies(filters = {}) {
   const mockMode = await isMockModeEnabled();
 
-  // Backend API call (ready for integration)
-  // Uncomment when backend is ready:
-  /*
-  try {
-    const response = await api.get('/public/companies', { params: filters });
-    if (mockMode) {
-      // If mock mode is ON, merge with mock data
-      const mockCompanies = await loadCompanies();
-      const stored = localStorage.getItem('xktf_companies');
-      let allMock = stored ? JSON.parse(stored) : mockCompanies;
-      // Merge backend data with mock data
-      return { data: [...response.data, ...allMock] };
-    }
-    return response;
-  } catch (error) {
-    // If backend fails and mock mode is ON, fall back to mock data
-    if (mockMode) {
-      console.warn('Backend unavailable, using mock data');
-    } else {
-      throw error;
-    }
-  }
-  */
+  // Backend API call - only admin endpoint exists (POST /api/admin/company/getallcompanies)
+  // No public endpoint exists - non-admin users will get empty array
 
   let backendCompanies = [];
   let backendRequestSucceeded = false;
@@ -120,61 +99,58 @@ export async function getAllCompanies(filters = {}) {
 
   const authenticated = isAuthenticated();
 
+  // Helper to check if user is admin
+  function isAdmin() {
+    if (!authenticated) return false;
+    try {
+      const userCookie = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("xktf_user="));
+      if (userCookie) {
+        const userString = decodeURIComponent(
+          userCookie.split("=").slice(1).join("=")
+        );
+        const user = JSON.parse(userString);
+        const role = user?.role?.toLowerCase();
+        return role === "admin" || role === "subadmin" || role === "operator";
+      }
+    } catch (error) {
+      // Silently fail
+    }
+    // Also check sessionStorage
+    try {
+      const s = sessionStorage.getItem("xktf_user");
+      if (s) {
+        const user = JSON.parse(s);
+        const role = user?.role?.toLowerCase();
+        return role === "admin" || role === "subadmin" || role === "operator";
+      }
+    } catch (error) {
+      // Silently fail
+    }
+    return false;
+  }
+
+  const userIsAdmin = isAdmin();
+
   // Always try to fetch from backend first (only if mock mode is OFF)
   if (!mockMode) {
-    // Try public endpoint first for all users (authenticated or not)
-    // This should work for regular users without admin access
-    try {
-      // Try /public/companies first (following the pattern of /public/blogs)
-      const publicResponse = await api.get("/public/companies", {
-        params: filters,
-      });
-      if (
-        publicResponse.data?.data &&
-        Array.isArray(publicResponse.data.data)
-      ) {
-        return { data: publicResponse.data.data };
-      }
-      if (Array.isArray(publicResponse.data)) {
-        return { data: publicResponse.data };
-      }
-      return publicResponse;
-    } catch (publicError) {
-      // If /public/companies doesn't exist, try /companies
-      try {
-        const companiesResponse = await api.get("/companies", {
-          params: filters,
-        });
-        if (
-          companiesResponse.data?.data &&
-          Array.isArray(companiesResponse.data.data)
-        ) {
-          return { data: companiesResponse.data.data };
-        }
-        if (Array.isArray(companiesResponse.data)) {
-          return { data: companiesResponse.data };
-        }
-        return companiesResponse;
-      } catch (companiesError) {
-        // Both public endpoints failed - continue to try admin endpoint for authenticated users
-        // For unauthenticated users, return empty array
-        if (!authenticated) {
-          return { data: [] };
-        }
-      }
-    }
-
-    // For authenticated users, try admin endpoint as fallback
-    // This will work for admin/operator users
+    // Try admin endpoint for all authenticated users
+    // For non-admin users, we'll filter to only approved companies
+    // If backend returns 403, we'll handle it gracefully
     if (authenticated) {
       try {
         // Backend expects POST for getAllCompanies with filters in body and query params
         const { search, page, size, ...bodyFilters } = filters;
 
-        // Request approved companies for public visibility when no status filter is set
+        // For non-admin users, always filter to approved companies only
+        // For admin users, use the status filter if provided, otherwise show all
         const requestBody = { ...bodyFilters };
-        if (!requestBody.status && !filters.status) {
-          // Default to approved if no status specified
+        if (!userIsAdmin) {
+          // Non-admin users can only see approved companies
+          requestBody.status = "approved";
+        } else if (!requestBody.status && !filters.status) {
+          // Admin users: default to approved if no status specified (for public view)
           requestBody.status = "approved";
         }
 
@@ -205,8 +181,8 @@ export async function getAllCompanies(filters = {}) {
           backendRequestSucceeded = true;
         }
       } catch (error) {
-        // If we get 401 (unauthorized) or 403 (forbidden), the endpoint requires admin authentication
-        // This is expected for non-admin users - return empty array
+        // If we get 401 (unauthorized) or 403 (forbidden), user doesn't have access
+        // This is expected for non-admin users trying to access admin endpoint
         if (error.response?.status === 401 || error.response?.status === 403) {
           backendRequestSucceeded = false;
         } else if (
@@ -221,6 +197,11 @@ export async function getAllCompanies(filters = {}) {
           backendRequestSucceeded = false;
         }
       }
+    }
+
+    // For unauthenticated users, no endpoint exists - return empty array
+    if (!authenticated) {
+      return { data: [] };
     }
   }
 
