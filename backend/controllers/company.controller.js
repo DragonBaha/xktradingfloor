@@ -125,14 +125,14 @@ exports.getAllCompanies = async (req, res) => {
 
         const companiesWithRatings = companies.map(company => {
             const companyReviews = reviewsByCompany[company._id] || [];
-            const reviewers = companyReviews.map(r => r.userId);
+            // const reviewers = companyReviews.map(r => r.userId);
             const totalReviews = companyReviews.length;
             const ratingsAggregate = totalReviews > 0
                 ? parseFloat((companyReviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1))
                 : 0;
             return {
                 ...company,
-                reviewers,
+                // reviewers,
                 ratingsAggregate,
                 totalReviews
             };
@@ -159,6 +159,18 @@ exports.getCompanyById = async (req, res) => {
         if (!company) {
             return sendErrorResponse(res, "Company not found", 404, true, true);
         }
+
+        const reviews = await ReviewModel.find({ companyId: company._id }).populate("userId").lean();
+        const reviewers = reviews.map(r => r.userId);
+        const totalReviews = reviews.length;
+        const ratingsAggregate = totalReviews > 0
+            ? parseFloat((reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1))
+            : 0;
+
+        reviews.ratingsAggregate = ratingsAggregate;
+        reviews.totalReviews = totalReviews;
+
+        company.reviewsDetails = reviews;
 
         return sendSuccessResponse(res, { data: company });
     } catch (error) {
