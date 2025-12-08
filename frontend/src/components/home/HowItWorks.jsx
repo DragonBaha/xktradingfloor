@@ -14,9 +14,9 @@ const steps = [
   {
     id: 1,
     number: "01",
-    title: "Join XK Trading Floor & Unlock Your Trader's Hub",
+    title: "Join XK Trading Floor & Unlock Your Trader’s Hub",
     description:
-      "Sign up to access everything in one place — verified broker reviews, prop firm insights, forex academies, and our private trading community. Your account gives you access to resources, mentorship opportunities, and exclusive content made for traders who want real results.",
+      "Start by signing up on XK Trading Floor. Gain access to reviews, blogs, events, and community tools built for traders.",
     image: "/assets/create_account.jpg",
     ctaText: "Get Started",
     ctaLink: "/signup",
@@ -25,9 +25,9 @@ const steps = [
   {
     id: 2,
     number: "02",
-    title: "Follow Our Socials & Stay Ahead",
+    title: "Join the Community",
     description:
-      "Trading moves fast — stay connected with our latest podcasts, trader interviews, and updates on events and workshops across India. Follow XK Trading Floor on YouTube, Instagram, and Discord to never miss trading insights or new prop firm offers.",
+      "Follow us on socials, watch our podcast, and connect with traders across the XKTF community.",
     image: "/assets/follow_socials.jpg",
     ctaText: "Follow Us",
     ctaLink: "/contact",
@@ -36,9 +36,9 @@ const steps = [
   {
     id: 3,
     number: "03",
-    title: "Join Our Whop & Start Trading With Support",
+    title: "Share Your Journey & Explore",
     description:
-      "Once you're in, connect directly with our team and community. Ask questions, get feedback, share your analysis, and take part in live sessions or reviews from top traders and educators. Whether you're learning or trading live, we're here to help you level up.",
+      "Write your trading story, publish blogs, review brokers and prop firms, and discover trading events happening around the world.",
     image: "/assets/join_academy.jpg",
     ctaText: "Join Discord",
     ctaLink: "/contact",
@@ -199,6 +199,25 @@ function HowItWorks() {
           >
             Follow these simple steps to start your journey with XK Trading Floor — learn, connect, and grow as a trader.
           </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="flex flex-wrap justify-center gap-3 mt-4"
+          >
+            {[
+              "Create an Account on XK Trading Floor",
+              "Connect & Grow",
+              "Share Your Journey & Explore",
+            ].map((label) => (
+              <span
+                key={label}
+                className="px-4 py-2 rounded-full bg-gray-800/60 border border-gray-700 text-sm text-gray-200"
+              >
+                {label}
+              </span>
+            ))}
+          </motion.div>
         </motion.div>
 
         {/* Desktop: Horizontal Scroll */}
