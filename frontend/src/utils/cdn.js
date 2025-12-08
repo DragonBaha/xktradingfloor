@@ -1,6 +1,6 @@
 /**
  * Cloudflare CDN Utility
- * 
+ *
  * Centralized configuration and utilities for Cloudflare R2/CDN asset delivery
  * Supports signed URLs, fallback handling, and performance optimizations
  */
@@ -26,7 +26,7 @@ export const getCdnBaseUrl = () => {
 
 /**
  * Get CDN asset URL with proper path handling
- * 
+ *
  * @param {string} path - Asset path (e.g., "/assets/logo.png" or "assets/logo.png")
  * @param {Object} options - Options for URL generation
  * @param {boolean} options.signed - Whether to request a signed URL (requires backend)
@@ -65,24 +65,50 @@ export const getCdnAssetUrl = (path, options = {}) => {
 /**
  * Get CDN asset URL with automatic fallback
  * Returns both CDN URL and fallback for use in image error handling
- * 
+ *
  * @param {string} path - Asset path
  * @param {string} fallbackPath - Fallback path if CDN fails
  * @returns {Object} - { cdnUrl, fallbackUrl }
  */
-export const getCdnAssetWithFallback = (path, fallbackPath = "/assets/placeholder.jpg") => {
-  const cdnUrl = getCdnAssetUrl(path);
-  const fallbackUrl = getCdnAssetUrl(fallbackPath);
+export const getCdnAssetWithFallback = (
+  path,
+  fallbackPath = "/assets/placeholder.jpg"
+) => {
+  const cdnBaseUrl = getCdnBaseUrl();
+
+  // If CDN is configured, use CDN URLs
+  if (cdnBaseUrl) {
+    const cdnUrl = getCdnAssetUrl(path);
+    const fallbackUrl = getCdnAssetUrl(fallbackPath);
+    return {
+      cdnUrl,
+      fallbackUrl: fallbackUrl || fallbackPath,
+    };
+  }
+
+  // If CDN is not configured, handle base URL for GitHub Pages
+  // This ensures GitHub Pages base path (/xktradingfloor/) is properly prepended
+  const baseUrl = import.meta.env.BASE_URL || "/";
+  const normalizePath = (p) => {
+    if (!p) return p;
+    if (p.startsWith("http://") || p.startsWith("https://")) return p;
+    if (p.startsWith(baseUrl)) return p;
+    if (p.startsWith("/")) {
+      const normalizedBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+      return `${normalizedBase}${p.slice(1)}`;
+    }
+    return p;
+  };
 
   return {
-    cdnUrl,
-    fallbackUrl: fallbackUrl || fallbackPath,
+    cdnUrl: normalizePath(path),
+    fallbackUrl: normalizePath(fallbackPath),
   };
 };
 
 /**
  * Check if an asset URL is a CDN URL
- * 
+ *
  * @param {string} url - URL to check
  * @returns {boolean} - True if URL is from CDN
  */
@@ -96,7 +122,7 @@ export const isCdnUrl = (url) => {
 /**
  * Get optimized image URL with responsive parameters
  * Supports Cloudflare Image Resizing if available
- * 
+ *
  * @param {string} path - Image path
  * @param {Object} options - Image optimization options
  * @param {number} options.width - Desired width
@@ -117,7 +143,7 @@ export const getOptimizedImageUrl = (path, options = {}) => {
   // Cloudflare Image Resizing URL parameters
   // Format: /cdn-cgi/image/{options}/{path}
   const params = [];
-  
+
   if (width) params.push(`width=${width}`);
   if (height) params.push(`height=${height}`);
   if (format) params.push(`format=${format}`);
@@ -137,7 +163,7 @@ export const getOptimizedImageUrl = (path, options = {}) => {
 /**
  * Preload an asset from CDN
  * Useful for critical assets like logos, hero images
- * 
+ *
  * @param {string} path - Asset path
  * @param {string} as - Resource type (image, script, style, etc.)
  * @returns {Promise<void>}
@@ -145,7 +171,7 @@ export const getOptimizedImageUrl = (path, options = {}) => {
 export const preloadCdnAsset = (path, as = "image") => {
   return new Promise((resolve, reject) => {
     const url = getCdnAssetUrl(path);
-    
+
     if (as === "image") {
       const img = new Image();
       img.onload = () => resolve();
@@ -166,12 +192,13 @@ export const preloadCdnAsset = (path, as = "image") => {
 
 /**
  * Batch preload multiple assets
- * 
+ *
  * @param {Array<{path: string, as?: string}>} assets - Array of asset configs
  * @returns {Promise<void[]>}
  */
 export const preloadCdnAssets = async (assets) => {
-  const promises = assets.map(({ path, as = "image" }) => preloadCdnAsset(path, as));
+  const promises = assets.map(({ path, as = "image" }) =>
+    preloadCdnAsset(path, as)
+  );
   return Promise.allSettled(promises);
 };
-

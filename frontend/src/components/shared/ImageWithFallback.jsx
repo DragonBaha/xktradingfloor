@@ -1,12 +1,21 @@
 import React from "react";
 import { getAssetPath } from "../../utils/assets.js";
-import { getCdnAssetUrl, getCdnAssetWithFallback, getCdnBaseUrl } from "../../utils/cdn.js";
+import {
+  getCdnAssetUrl,
+  getCdnAssetWithFallback,
+  getCdnBaseUrl,
+} from "../../utils/cdn.js";
 
 /**
  * Generate a dynamic fallback image with text (blog title or company name)
  * Creates a data URL with gradient background and text overlay matching website theme
  */
-function generateTextImage(text, width = 800, height = 400, usePlaceholderBg = false) {
+function generateTextImage(
+  text,
+  width = 800,
+  height = 400,
+  usePlaceholderBg = false
+) {
   return new Promise((resolve) => {
     // Create a canvas element
     const canvas = document.createElement("canvas");
@@ -23,7 +32,7 @@ function generateTextImage(text, width = 800, height = 400, usePlaceholderBg = f
       gradient.addColorStop(0.6, "#3b82f6"); // blue-500
       gradient.addColorStop(0.8, "#6366f1"); // indigo-500
       gradient.addColorStop(1, "#8b5cf6"); // purple-500
-      
+
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, width, height);
 
@@ -51,13 +60,13 @@ function generateTextImage(text, width = 800, height = 400, usePlaceholderBg = f
       ctx.textBaseline = "middle";
 
       // Word wrap text with better line breaking
-      const words = text ? text.split(" ").filter(w => w.length > 0) : [""];
+      const words = text ? text.split(" ").filter((w) => w.length > 0) : [""];
       const lines = [];
-      
+
       if (words.length === 0) {
         words.push("No Title");
       }
-      
+
       let currentLine = words[0] || "No Title";
       const maxWidth = width - 100; // Padding on both sides
 
@@ -88,19 +97,19 @@ function generateTextImage(text, width = 800, height = 400, usePlaceholderBg = f
       const lineHeight = 48;
       const totalHeight = (lines.length - 1) * lineHeight;
       const startY = (height - totalHeight) / 2;
-      
+
       // Ensure text is visible - draw with stroke outline for better contrast
       lines.forEach((line, index) => {
         const x = width / 2;
         const y = startY + index * lineHeight;
-        
+
         // Draw black outline/stroke for contrast
         ctx.strokeStyle = "#000000";
         ctx.lineWidth = 8;
         ctx.lineJoin = "round";
         ctx.miterLimit = 2;
         ctx.strokeText(line, x, y);
-        
+
         // Draw white fill text on top
         ctx.fillStyle = "#ffffff";
         ctx.fillText(line, x, y);
@@ -122,11 +131,11 @@ function generateTextImage(text, width = 800, height = 400, usePlaceholderBg = f
       img.onload = () => {
         // Draw placeholder as background with overlay
         ctx.drawImage(img, 0, 0, width, height);
-        
+
         // Add dark overlay for text readability
         ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
         ctx.fillRect(0, 0, width, height);
-        
+
         // Then draw gradient on top with transparency
         const gradient = ctx.createLinearGradient(0, 0, width, height);
         gradient.addColorStop(0, "rgba(30, 58, 138, 0.7)"); // blue-800
@@ -134,7 +143,7 @@ function generateTextImage(text, width = 800, height = 400, usePlaceholderBg = f
         gradient.addColorStop(1, "rgba(139, 92, 246, 0.7)"); // purple-500
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, width, height);
-        
+
         // Now draw text
         ctx.fillStyle = "#ffffff";
         // Use a more reliable font stack
@@ -142,13 +151,13 @@ function generateTextImage(text, width = 800, height = 400, usePlaceholderBg = f
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
 
-        const words = text ? text.split(" ").filter(w => w.length > 0) : [""];
+        const words = text ? text.split(" ").filter((w) => w.length > 0) : [""];
         const lines = [];
-        
+
         if (words.length === 0) {
           words.push("No Title");
         }
-        
+
         let currentLine = words[0] || "No Title";
         const maxWidth = width - 100;
 
@@ -172,19 +181,19 @@ function generateTextImage(text, width = 800, height = 400, usePlaceholderBg = f
         const lineHeight = 48;
         const totalHeight = (lines.length - 1) * lineHeight;
         const startY = (height - totalHeight) / 2;
-        
+
         // Ensure text is visible - draw with stroke outline for better contrast
         lines.forEach((line, index) => {
           const x = width / 2;
           const y = startY + index * lineHeight;
-          
+
           // Draw black outline/stroke for contrast
           ctx.strokeStyle = "#000000";
           ctx.lineWidth = 8;
           ctx.lineJoin = "round";
           ctx.miterLimit = 2;
           ctx.strokeText(line, x, y);
-          
+
           // Draw white fill text on top
           ctx.fillStyle = "#ffffff";
           ctx.fillText(line, x, y);
@@ -235,7 +244,7 @@ export default function ImageWithFallback({
   const isExternalUrl = React.useMemo(() => {
     if (!src) return false;
     // Check for http/https URLs
-    if (src.startsWith('http://') || src.startsWith('https://')) {
+    if (src.startsWith("http://") || src.startsWith("https://")) {
       return true;
     }
     // Check for Cloudflare R2 public domain patterns
@@ -245,7 +254,7 @@ export default function ImageWithFallback({
     }
     return false;
   }, [src]);
-  
+
   // Get CDN URLs with fallback
   const { cdnUrl, fallbackUrl } = React.useMemo(() => {
     // For external URLs, don't use CDN processing - use URL as-is
@@ -255,9 +264,16 @@ export default function ImageWithFallback({
         fallbackUrl: getAssetPath(fallback),
       };
     }
+    // If CDN is configured, use CDN URLs
     if (useCdn && src) {
-      return getCdnAssetWithFallback(src, fallback);
+      const cdnResult = getCdnAssetWithFallback(src, fallback);
+      // If CDN base URL exists, use CDN URLs
+      if (getCdnBaseUrl()) {
+        return cdnResult;
+      }
+      // Otherwise, fall through to use getAssetPath for base URL handling
     }
+    // For local assets (no CDN or CDN not configured), use getAssetPath to handle base URL
     return {
       cdnUrl: getAssetPath(src),
       fallbackUrl: getAssetPath(fallback),
@@ -272,10 +288,15 @@ export default function ImageWithFallback({
   React.useEffect(() => {
     // Only generate dynamic fallback if src is empty/null/undefined
     // This ensures we prioritize actual logo URLs over generated fallbacks
-    const hasValidSrc = src && src.trim() !== '';
-    
+    const hasValidSrc = src && src.trim() !== "";
+
     // Generate dynamic fallback if alt text is provided, useDynamicFallback is true, and no valid src
-    if (useDynamicFallback && alt && typeof window !== "undefined" && !hasValidSrc) {
+    if (
+      useDynamicFallback &&
+      alt &&
+      typeof window !== "undefined" &&
+      !hasValidSrc
+    ) {
       // Use placeholder as background for better visual appeal
       generateTextImage(alt, 800, 400, true)
         .then((dynamicImg) => {
@@ -307,7 +328,7 @@ export default function ImageWithFallback({
       // If we have a valid src, clear dynamic fallback to avoid using it
       setDynamicFallback(null);
     }
-    
+
     // Set image source if src is provided
     if (hasValidSrc) {
       setImgSrc(cdnUrl);
@@ -368,12 +389,15 @@ export default function ImageWithFallback({
   };
 
   // Check if we're using a fallback (not the original src)
-  const isUsingFallback = hasError || (!src && (dynamicFallback || imgSrc === fallbackUrl)) || (imgSrc === fallbackUrl && src && imgSrc !== cdnUrl);
+  const isUsingFallback =
+    hasError ||
+    (!src && (dynamicFallback || imgSrc === fallbackUrl)) ||
+    (imgSrc === fallbackUrl && src && imgSrc !== cdnUrl);
 
   // If using fallback and alt text exists, wrap in container with text overlay
   if (isUsingFallback && alt) {
     return (
-      <div className="relative" style={{ width: '100%', height: '100%' }}>
+      <div className="relative" style={{ width: "100%", height: "100%" }}>
         <div className="absolute -top-8 left-0 right-0 z-10 text-center mb-2">
           <span className="inline-block px-3 py-1 bg-gray-900/90 backdrop-blur-sm border border-gray-700 rounded-md text-xs sm:text-sm font-medium text-white shadow-lg max-w-full truncate">
             {alt}

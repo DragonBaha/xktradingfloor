@@ -15,13 +15,23 @@ export const getAssetPath = (path) => {
     return getCdnAssetUrl(path);
   }
 
-  // Fallback to local path handling (for development)
+  // Fallback to local path handling (for development and GitHub Pages)
+  const baseUrl = import.meta.env.BASE_URL || "/";
+
   // If path already starts with base URL, return as is
-  if (path.startsWith(import.meta.env.BASE_URL)) return path;
-  // If path starts with /, prepend base URL
-  if (path.startsWith("/")) {
-    return `${import.meta.env.BASE_URL}${path.slice(1)}`;
+  if (path.startsWith(baseUrl)) return path;
+
+  // If path already starts with http:// or https://, return as is (external URL)
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
   }
+
+  // If path starts with /, prepend base URL (ensuring no double slashes)
+  if (path.startsWith("/")) {
+    const normalizedBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+    return `${normalizedBase}${path.slice(1)}`;
+  }
+
   // Otherwise, return path as is (relative paths)
   return path;
 };
