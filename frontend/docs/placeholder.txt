@@ -1,0 +1,3 @@
+Static files (favicons, robots.txt) can live here.
+
+

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XK Trading Floor</title>
+    <script>
+      // GitHub Pages SPA routing fix
+      // This file is served when GitHub Pages can't find a file
+      // We need to load index.html while preserving the original path
+
+      // Dynamically detect base path from current location
+      // For GitHub Pages project site: /xktradingfloor/
+      // For root domain: /
+      // For localhost: /
+      var path = window.location.pathname;
+      var search = window.location.search;
+      var hash = window.location.hash;
+
+      // Detect base path: if path starts with /xktradingfloor/, use that, otherwise use /
+      // This works for both GitHub Pages project sites and root domains
+      var basePath = "/";
+      if (path.startsWith("/xktradingfloor/")) {
+        basePath = "/xktradingfloor/";
+      } else {
+        // Try to detect from the path structure
+        // If we're in a subdirectory, extract it
+        var pathParts = path.split("/").filter(function (p) {
+          return p.length > 0;
+        });
+        if (pathParts.length > 0 && pathParts[0] !== "index.html") {
+          // Check if first part might be a base path (e.g., repository name)
+          // For now, default to /, but this can be customized per deployment
+          basePath = "/";
+        }
+      }
+
+      // Store the original path in sessionStorage so React Router can use it
+      sessionStorage.setItem("github-404-redirect", path);
+
+      // Redirect to index.html
+      // After index.html loads, React Router will check sessionStorage and restore the path
+      window.location.replace(basePath + "index.html" + search + hash);
+    </script>
+  </head>
+  <body>
+    <div
+      style="
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-family: system-ui, -apple-system, sans-serif;
+      "
+    >
+      <p>Loading...</p>
+    </div>
+  </body>
+</html>
