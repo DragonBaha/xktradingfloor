@@ -2,11 +2,11 @@ import api from "./api.js";
 
 /**
  * User Management Controller
- * 
+ *
  * This service layer is prepared for backend API integration.
  * Currently returns mock data structure, but can be easily switched
  * to real API calls when backend endpoints are available.
- * 
+ *
  * Expected Backend Endpoints (to be implemented):
  * - GET /api/admin/users/getallusers?page=1&size=10&search=&role=
  * - POST /api/admin/users/createoperator
@@ -55,7 +55,12 @@ function isAdmin() {
  * @param {string} params.role - Filter by role (User, Operator, Admin)
  * @returns {Promise<{data: {docs: Array, totalItems: number, currentPage: number, totalPages: number}}>}
  */
-export async function getAllUsers({ page = 1, size = 10, search = "", role = "" } = {}) {
+export async function getAllUsers({
+  page = 1,
+  size = 10,
+  search = "",
+  role = "",
+} = {}) {
   if (!isAdmin()) {
     throw new Error("Only admins can access user management");
   }
@@ -63,7 +68,7 @@ export async function getAllUsers({ page = 1, size = 10, search = "", role = "" 
   // TODO: Replace with real API call when backend is ready
   // Expected endpoint: GET /api/admin/users/getallusers
   // Expected response: { success: true, data: { docs: [...], totalItems, currentPage, totalPages } }
-  
+
   try {
     // Try backend API first
     const response = await api.get("/admin/users/getallusers", {
@@ -73,10 +78,11 @@ export async function getAllUsers({ page = 1, size = 10, search = "", role = "" 
     if (response.data?.success && response.data?.data) {
       return {
         data: {
-          docs: response.data.data.docs?.map((user) => ({
-            ...user,
-            id: user._id || user.id,
-          })) || [],
+          docs:
+            response.data.data.docs?.map((user) => ({
+              ...user,
+              id: user._id || user.id,
+            })) || [],
           totalItems: response.data.data.totalItems || 0,
           currentPage: response.data.data.currentPage || page,
           totalPages: response.data.data.totalPages || 1,
@@ -129,17 +135,18 @@ export async function createOperator(operatorData) {
     fullName: String(operatorData.fullName).trim(),
     email: String(operatorData.email).trim().toLowerCase(),
     password: String(operatorData.password),
-    mobileNumber: operatorData.mobileNumber ? String(operatorData.mobileNumber).trim() : "",
+    mobileNumber: operatorData.mobileNumber
+      ? String(operatorData.mobileNumber).trim()
+      : "",
     role: "Operator", // Default role for operators
   };
 
-  // TODO: Replace with real API call when backend is ready
-  // Expected endpoint: POST /api/admin/users/createoperator
+  // Backend endpoint: POST /api/admin/users/addAdminUser
   // Expected body: { fullName, email, password, mobileNumber, role }
   // Expected response: { success: true, message: "...", data: {...} }
 
   try {
-    const response = await api.post("/admin/users/createoperator", sanitizedData);
+    const response = await api.post("/admin/users/addAdminUser", sanitizedData);
 
     if (response.data?.success && response.data?.data) {
       return {
@@ -153,7 +160,9 @@ export async function createOperator(operatorData) {
   } catch (error) {
     // Backend endpoint not implemented yet
     if (error.response?.status === 404 || error.response?.status === 501) {
-      throw new Error("User management API is not yet implemented. Please contact the development team.");
+      throw new Error(
+        "User management API is not yet implemented. Please contact the development team."
+      );
     }
     // Handle validation errors
     if (error.response?.status === 400) {
@@ -179,16 +188,24 @@ export async function updateUserRole(userId, newRole) {
 
   // Prevent admin role changes
   if (newRole === "Admin" || newRole === "admin") {
-    throw new Error("Cannot change user role to Admin. Admin roles must be assigned manually.");
+    throw new Error(
+      "Cannot change user role to Admin. Admin roles must be assigned manually."
+    );
   }
 
   // Validate role
-  if (newRole !== "User" && newRole !== "Operator" && newRole !== "user" && newRole !== "operator") {
+  if (
+    newRole !== "User" &&
+    newRole !== "Operator" &&
+    newRole !== "user" &&
+    newRole !== "operator"
+  ) {
     throw new Error("Invalid role. Must be 'User' or 'Operator'");
   }
 
   // Normalize role to match backend format
-  const normalizedRole = newRole === "user" ? "User" : newRole === "operator" ? "Operator" : newRole;
+  const normalizedRole =
+    newRole === "user" ? "User" : newRole === "operator" ? "Operator" : newRole;
 
   // TODO: Replace with real API call when backend is ready
   // Expected endpoint: PUT /api/admin/users/:userId/updaterole
@@ -212,7 +229,9 @@ export async function updateUserRole(userId, newRole) {
   } catch (error) {
     // Backend endpoint not implemented yet
     if (error.response?.status === 404 || error.response?.status === 501) {
-      throw new Error("User management API is not yet implemented. Please contact the development team.");
+      throw new Error(
+        "User management API is not yet implemented. Please contact the development team."
+      );
     }
     if (error.response?.status === 400) {
       throw new Error(error.response?.data?.message || "Invalid role");
@@ -257,7 +276,9 @@ export async function updateUserStatus(userId, isActive) {
   } catch (error) {
     // Backend endpoint not implemented yet
     if (error.response?.status === 404 || error.response?.status === 501) {
-      throw new Error("User management API is not yet implemented. Please contact the development team.");
+      throw new Error(
+        "User management API is not yet implemented. Please contact the development team."
+      );
     }
     if (error.response?.status === 400) {
       throw new Error(error.response?.data?.message || "Invalid status");
@@ -268,4 +289,3 @@ export async function updateUserStatus(userId, isActive) {
     throw error;
   }
 }
-

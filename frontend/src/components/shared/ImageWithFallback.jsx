@@ -1,6 +1,6 @@
 import React from "react";
 import { getAssetPath } from "../../utils/assets.js";
-import { getCdnAssetUrl, getCdnAssetWithFallback } from "../../utils/cdn.js";
+import { getCdnAssetUrl, getCdnAssetWithFallback, getCdnBaseUrl } from "../../utils/cdn.js";
 
 /**
  * Generate a dynamic fallback image with text (blog title or company name)
@@ -230,8 +230,31 @@ export default function ImageWithFallback({
   useCdn = true, // Enable CDN by default
   ...props
 }) {
+  // Check if src is an external URL (starts with http:// or https://)
+  // Also check for Cloudflare R2 URLs or other CDN URLs
+  const isExternalUrl = React.useMemo(() => {
+    if (!src) return false;
+    // Check for http/https URLs
+    if (src.startsWith('http://') || src.startsWith('https://')) {
+      return true;
+    }
+    // Check for Cloudflare R2 public domain patterns
+    const cdnBaseUrl = getCdnBaseUrl();
+    if (cdnBaseUrl && src.startsWith(cdnBaseUrl)) {
+      return true;
+    }
+    return false;
+  }, [src]);
+  
   // Get CDN URLs with fallback
   const { cdnUrl, fallbackUrl } = React.useMemo(() => {
+    // For external URLs, don't use CDN processing - use URL as-is
+    if (isExternalUrl) {
+      return {
+        cdnUrl: src,
+        fallbackUrl: getAssetPath(fallback),
+      };
+    }
     if (useCdn && src) {
       return getCdnAssetWithFallback(src, fallback);
     }
@@ -239,7 +262,7 @@ export default function ImageWithFallback({
       cdnUrl: getAssetPath(src),
       fallbackUrl: getAssetPath(fallback),
     };
-  }, [src, fallback, useCdn]);
+  }, [src, fallback, useCdn, isExternalUrl]);
 
   const [imgSrc, setImgSrc] = React.useState(cdnUrl || null);
   const [hasError, setHasError] = React.useState(false);
@@ -247,14 +270,18 @@ export default function ImageWithFallback({
   const [errorCount, setErrorCount] = React.useState(0);
 
   React.useEffect(() => {
-    // Generate dynamic fallback if alt text is provided and useDynamicFallback is true
-    if (useDynamicFallback && alt && typeof window !== "undefined") {
+    // Only generate dynamic fallback if src is empty/null/undefined
+    // This ensures we prioritize actual logo URLs over generated fallbacks
+    const hasValidSrc = src && src.trim() !== '';
+    
+    // Generate dynamic fallback if alt text is provided, useDynamicFallback is true, and no valid src
+    if (useDynamicFallback && alt && typeof window !== "undefined" && !hasValidSrc) {
       // Use placeholder as background for better visual appeal
       generateTextImage(alt, 800, 400, true)
         .then((dynamicImg) => {
           setDynamicFallback(dynamicImg);
           // If no src provided, use dynamic fallback immediately
-          if (!src) {
+          if (!hasValidSrc) {
             setImgSrc(dynamicImg);
           }
         })
@@ -265,48 +292,103 @@ export default function ImageWithFallback({
             .then((dynamicImg) => {
               setDynamicFallback(dynamicImg);
               // If no src provided, use dynamic fallback immediately
-              if (!src) {
+              if (!hasValidSrc) {
                 setImgSrc(dynamicImg);
               }
             })
             .catch(() => {
               setDynamicFallback(null);
-              if (!src) {
+              if (!hasValidSrc) {
                 setImgSrc(fallbackUrl);
               }
             });
         });
+    } else if (useDynamicFallback && hasValidSrc) {
+      // If we have a valid src, clear dynamic fallback to avoid using it
+      setDynamicFallback(null);
     }
     
     // Set image source if src is provided
-    if (src) {
+    if (hasValidSrc) {
       setImgSrc(cdnUrl);
       setHasError(false);
       setErrorCount(0);
+    } else if (!hasValidSrc && useDynamicFallback && dynamicFallback) {
+      // If no src but we have dynamic fallback, use it
+      setImgSrc(dynamicFallback);
+    } else if (!hasValidSrc) {
+      // If no src and no dynamic fallback, use static fallback
+      setImgSrc(fallbackUrl);
     }
   }, [src, alt, useDynamicFallback, cdnUrl, fallbackUrl]);
 
   const handleError = () => {
     // Prevent infinite error loops
-    if (errorCount >= 2) {
+    if (errorCount >= 3) {
       return;
     }
 
-    setErrorCount((prev) => prev + 1);
+    const newErrorCount = errorCount + 1;
+    setErrorCount(newErrorCount);
     setHasError(true);
 
-    // Fallback chain: CDN -> Local -> Dynamic -> Static placeholder
-    if (errorCount === 0 && useCdn && imgSrc === cdnUrl) {
-      // First error: try local fallback
+    // For external URLs (like Cloudflare R2), be more patient
+    // Only fallback if we've tried multiple times
+    if (isExternalUrl) {
+      if (newErrorCount === 1) {
+        // First error on external URL - might be temporary, try again
+        // Reset to try loading the same URL once more
+        setTimeout(() => {
+          setImgSrc(cdnUrl);
+          setHasError(false);
+        }, 500);
+        return;
+      } else if (newErrorCount >= 2) {
+        // After retry failed, use fallback
+        if (useDynamicFallback && dynamicFallback) {
+          setImgSrc(dynamicFallback);
+        } else {
+          setImgSrc(fallbackUrl);
+        }
+        return;
+      }
+    }
+
+    // Fallback chain for non-external URLs: CDN -> Local -> Dynamic -> Static placeholder
+    if (newErrorCount === 1 && useCdn && imgSrc === cdnUrl && !isExternalUrl) {
+      // First error: try local fallback (only for non-external URLs)
       setImgSrc(fallbackUrl);
     } else if (useDynamicFallback && dynamicFallback) {
-      // Second error: use dynamic fallback if available
+      // Use dynamic fallback if available
       setImgSrc(dynamicFallback);
     } else {
       // Final fallback: static placeholder
       setImgSrc(fallbackUrl);
     }
   };
+
+  // Check if we're using a fallback (not the original src)
+  const isUsingFallback = hasError || (!src && (dynamicFallback || imgSrc === fallbackUrl)) || (imgSrc === fallbackUrl && src && imgSrc !== cdnUrl);
+
+  // If using fallback and alt text exists, wrap in container with text overlay
+  if (isUsingFallback && alt) {
+    return (
+      <div className="relative" style={{ width: '100%', height: '100%' }}>
+        <div className="absolute -top-8 left-0 right-0 z-10 text-center mb-2">
+          <span className="inline-block px-3 py-1 bg-gray-900/90 backdrop-blur-sm border border-gray-700 rounded-md text-xs sm:text-sm font-medium text-white shadow-lg max-w-full truncate">
+            {alt}
+          </span>
+        </div>
+        <img
+          src={imgSrc}
+          alt={alt}
+          className={className}
+          onError={handleError}
+          {...props}
+        />
+      </div>
+    );
+  }
 
   return (
     <img

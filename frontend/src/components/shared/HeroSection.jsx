@@ -23,7 +23,13 @@ export default function HeroSection({ title, subtitle, background = 'default', b
           transition={{ duration: 0.6 }}
           className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl"
         >
-          {title}
+          {typeof title === 'string' ? (
+            <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">
+              {title}
+            </span>
+          ) : (
+            title
+          )}
         </motion.h1>
         {subtitle && (
           <motion.p

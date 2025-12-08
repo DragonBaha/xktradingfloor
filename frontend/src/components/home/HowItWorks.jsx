@@ -14,7 +14,8 @@ const steps = [
   {
     id: 1,
     number: "01",
-    title: "Join XK Trading Floor & Unlock Your Trader’s Hub",
+    mainTitle: "Create an Account on XK Trading Floor",
+    title: "Join XK Trading Floor & Unlock Your Trader's Hub",
     description:
       "Start by signing up on XK Trading Floor. Gain access to reviews, blogs, events, and community tools built for traders.",
     image: "/assets/create_account.jpg",
@@ -25,6 +26,7 @@ const steps = [
   {
     id: 2,
     number: "02",
+    mainTitle: "Connect & Grow",
     title: "Join the Community",
     description:
       "Follow us on socials, watch our podcast, and connect with traders across the XKTF community.",
@@ -36,6 +38,7 @@ const steps = [
   {
     id: 3,
     number: "03",
+    mainTitle: "Share Your Journey & Explore",
     title: "Share Your Journey & Explore",
     description:
       "Write your trading story, publish blogs, review brokers and prop firms, and discover trading events happening around the world.",
@@ -91,12 +94,23 @@ function StepCard({ step, index, isInView }) {
         {/* Content */}
         <div className="relative z-10 h-full flex flex-col justify-between p-6">
           <div>
+            {/* Number - Big, same size */}
             <div
               className={`text-5xl sm:text-6xl font-extrabold ${colors.text} mb-3 leading-none`}
             >
               {step.number}
             </div>
-            <h3 className="font-display font-semibold text-sm sm:text-base tracking-tight mb-3 text-white">{step.title}</h3>
+            {/* Main Title - Smaller than number, bold */}
+            {step.mainTitle && (
+              <h3 className="font-display font-bold text-lg sm:text-xl lg:text-2xl tracking-tight mb-2 text-white">
+                {step.mainTitle}
+              </h3>
+            )}
+            {/* Title - Smaller than mainTitle, italic */}
+            <h4 className="font-display font-normal italic text-sm sm:text-base lg:text-lg tracking-tight mb-3 text-gray-200">
+              {step.title}
+            </h4>
+            {/* Description - Normal text */}
             <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
               {step.description}
             </p>
@@ -195,29 +209,10 @@ function HowItWorks() {
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-sm sm:text-base text-gray-400 max-w-2xl mx-auto mb-2"
+            className="text-sm sm:text-base text-gray-400 max-w-2xl mx-auto"
           >
             Follow these simple steps to start your journey with XK Trading Floor — learn, connect, and grow as a trader.
           </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="flex flex-wrap justify-center gap-3 mt-4"
-          >
-            {[
-              "Create an Account on XK Trading Floor",
-              "Connect & Grow",
-              "Share Your Journey & Explore",
-            ].map((label) => (
-              <span
-                key={label}
-                className="px-4 py-2 rounded-full bg-gray-800/60 border border-gray-700 text-sm text-gray-200"
-              >
-                {label}
-              </span>
-            ))}
-          </motion.div>
         </motion.div>
 
         {/* Desktop: Horizontal Scroll */}

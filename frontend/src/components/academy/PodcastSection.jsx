@@ -107,6 +107,7 @@ function PodcastCard({ video }) {
           fallback="/assets/placeholder.jpg"
           alt={video.title}
           className="h-full w-full object-cover"
+          useCdn={false}
         />
         <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
           <div className="h-12 w-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform">

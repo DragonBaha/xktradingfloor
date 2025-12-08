@@ -109,46 +109,72 @@ function HeroSection() {
           className="flex items-center justify-center relative"
         >
           <div className="relative h-96 w-96 flex items-center justify-center">
-            {/* Main Circular Border */}
+            {/* Logo - Center with Ripple Effect */}
             <motion.div
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.5 }}
-              className="absolute h-96 w-96 border border-gray-700/50 rounded-full flex items-center justify-center"
+              className="absolute z-30 flex items-center justify-center"
             >
-              {/* Logo - Center */}
-              <motion.div
-                className="flex items-center justify-center"
+              <motion.img
+                src={getAssetPath("/assets/logo.png")}
+                alt="XK Trading Floor Logo"
+                className="h-64 w-48 md:h-80 md:w-60 lg:h-96 lg:w-72 object-contain drop-shadow-2xl"
+                style={{ filter: "brightness(0) invert(1)" }}
                 animate={{
-                  scale: [1, 1.02, 1],
+                  scale: [1, 1.05, 1],
+                  rotate: [0, 2, -2, 0],
                 }}
                 transition={{
                   duration: 4,
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
-              >
-                <img
-                  src={getAssetPath("/assets/logo.png")}
-                  alt="XK Trading Floor Logo"
-                  className="h-48 w-48 md:h-64 md:w-64 lg:h-80 lg:w-80 object-contain"
-                  style={{ filter: "brightness(0) invert(1)" }}
-                />
-              </motion.div>
+              />
             </motion.div>
 
-            {/* Subtle Ripple Effect - Optional */}
+            {/* Inner Circle - Ripple 1 */}
             <motion.div
               animate={{
-                scale: [1, 1.2, 1],
+                scale: [1, 1.5, 1],
+                opacity: [0.7, 0, 0.7],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              className="absolute h-64 w-64 border-2 border-blue-400/50 rounded-full"
+            />
+
+            {/* Outer Circle - Ripple 2 */}
+            <motion.div
+              animate={{
+                scale: [1, 1.8, 1],
+                opacity: [0.5, 0, 0.5],
+              }}
+              transition={{
+                duration: 3.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 0.5,
+              }}
+              className="absolute h-96 w-96 border-2 border-blue-400/40 rounded-full"
+            />
+
+            {/* Additional Ripple Layer */}
+            <motion.div
+              animate={{
+                scale: [1, 2.2, 1],
                 opacity: [0.3, 0, 0.3],
               }}
               transition={{
                 duration: 4,
                 repeat: Infinity,
                 ease: "easeInOut",
+                delay: 1,
               }}
-              className="absolute h-96 w-96 border border-gray-600/20 rounded-full"
+              className="absolute h-[500px] w-[500px] border border-blue-400/30 rounded-full"
             />
           </div>
         </motion.div>

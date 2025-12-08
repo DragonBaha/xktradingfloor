@@ -5,7 +5,6 @@ import AnimatedDivider from "../components/shared/AnimatedDivider.jsx";
 import { motion } from "framer-motion";
 import {
   Mail,
-  Phone,
   MessageSquare,
   Linkedin,
   Twitter,
@@ -42,7 +41,7 @@ function Contact() {
       </Helmet>
 
       <HeroSection
-        title="Get in Touch"
+        title={<>Get in <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent font-semibold">Touch</span></>}
         subtitle="Questions, feedback, or collaboration ideas? We're here to help."
         buttonText="Contact Form"
         scrollTo="#contact-form"
@@ -174,18 +173,11 @@ function Contact() {
                       aria-hidden="true"
                     />
                     <a
-                      href="mailto:support@xktrading.com"
+                      href="mailto:x.tradersz@gmail.com"
                       className="hover:text-white transition-colors"
                     >
-                      support@xktrading.com
+                      x.tradersz@gmail.com
                     </a>
-                  </li>
-                  <li className="flex items-center gap-3 text-sm sm:text-base text-gray-300">
-                    <Phone
-                      className="text-blue-400 h-5 w-5"
-                      aria-hidden="true"
-                    />
-                    <span>+1 (555) 010-9876</span>
                   </li>
                   <li className="flex items-center gap-3 text-sm sm:text-base text-gray-300">
                     <MessageSquare
