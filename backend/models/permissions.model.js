@@ -40,7 +40,7 @@ const updatePermissionSchema = {
 };
 
 const deletePermissionSchema = {
-    create: {
+    delete: {
         type: Boolean,
     },
 };
@@ -53,7 +53,7 @@ const ModuleAcessSchema = new Schema(
         },
         commonPermissions: {
             dashboard: readPermissionSchema,
-
+            company: permissionSchema, // Company permissions with create, read, update, delete
         },
     },
     {

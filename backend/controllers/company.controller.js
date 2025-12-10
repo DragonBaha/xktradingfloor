@@ -37,7 +37,8 @@ exports.getAllApprovedCompanies = async (req, res) => {
         }
 
         const companies = await CompanyModel.find(query)
-            .populate('operatorId', 'fullName email profileImage')
+            .populate('addedBy', 'fullName email profileImage')
+            .populate('adminId', 'fullName email profileImage')
             .sort({ createdAt: -1 })
             .skip(offset)
             .limit(limit)
@@ -103,7 +104,8 @@ exports.getAllCompanies = async (req, res) => {
         }
 
         const companies = await CompanyModel.find(query)
-            .populate('operatorId', 'fullName email profileImage')
+            .populate('addedBy', 'fullName email profileImage')
+            .populate('adminId', 'fullName email profileImage')
             .sort({ createdAt: -1 })
             .skip(offset)
             .limit(limit)
@@ -153,7 +155,8 @@ exports.getCompanyById = async (req, res) => {
     try {
         const { companyId } = req.params;
         const company = await CompanyModel.findById(companyId)
-            .populate('operatorId', 'fullName email profileImage')
+            .populate('addedBy', 'fullName email profileImage')
+            .populate('adminId', 'fullName email profileImage')
             .lean();
 
         if (!company) {
@@ -178,14 +181,10 @@ exports.getCompanyById = async (req, res) => {
     }
 };
 
-// Create company (operator only)
+// Create company (permission checked in middleware)
 exports.createCompany = async (req, res) => {
     try {
         const { _id: userId, role } = req.user;
-
-        if (role !== constants.roles.operator && role !== constants.roles.admin) {
-            return sendErrorResponse(res, "Only operators can create companies", 403, true, true);
-        }
 
         let logo = "";
         if (req.files && req.files.logo) {
@@ -199,7 +198,8 @@ exports.createCompany = async (req, res) => {
 
         const companyData = {
             ...req.body,
-            operatorId: userId,
+            addedBy: userId,
+            adminId: role === constants.roles.admin ? userId : undefined,
             status: role === constants.roles.admin ? 'approved' : 'pending',
             ratingsAggregate: 0,
             totalReviews: 0,
@@ -209,6 +209,12 @@ exports.createCompany = async (req, res) => {
 
         const company = new CompanyModel(companyData);
         const savedCompany = await company.save();
+
+        // Populate user references
+        await savedCompany.populate('addedBy', 'fullName email profileImage');
+        if (savedCompany.adminId) {
+            await savedCompany.populate('adminId', 'fullName email profileImage');
+        }
 
         const companyObj = savedCompany.toObject();
         companyObj.id = companyObj._id.toString();
@@ -221,7 +227,7 @@ exports.createCompany = async (req, res) => {
     }
 };
 
-// Update company (operator can only update their own, admin can update any)
+// Update company (permission checked in middleware, operators can only update their own)
 exports.updateCompany = async (req, res) => {
     try {
         const { companyId } = req.params;
@@ -232,12 +238,9 @@ exports.updateCompany = async (req, res) => {
             return sendErrorResponse(res, "Company not found", 404, true, true);
         }
 
-        // Check permissions
-        if (role === constants.roles.operator && company.operatorId.toString() !== userId.toString()) {
+        // Operators can only update their own companies (ownership check)
+        if (role === constants.roles.operator && company.admminId.toString() !== userId.toString()) {
             return sendErrorResponse(res, "You can only update your own companies", 403, true, true);
-        }
-        if (role !== constants.roles.operator && role !== constants.roles.admin) {
-            return sendErrorResponse(res, "Only operators and admins can update companies", 403, true, true);
         }
 
         // If rating fields are being updated, recalculate
@@ -250,6 +253,12 @@ exports.updateCompany = async (req, res) => {
         Object.assign(company, req.body);
         const updatedCompany = await company.save();
 
+        // Populate user references
+        await updatedCompany.populate('addedBy', 'fullName email profileImage');
+        if (updatedCompany.adminId) {
+            await updatedCompany.populate('adminId', 'fullName email profileImage');
+        }
+
         const companyObj = updatedCompany.toObject();
         companyObj.id = companyObj._id.toString();
         return sendSuccessResponse(res, {
@@ -261,7 +270,7 @@ exports.updateCompany = async (req, res) => {
     }
 };
 
-// Delete company (operator can only delete their own, admin can delete any)
+// Delete company (permission checked in middleware, operators can only delete their own)
 exports.deleteCompany = async (req, res) => {
     try {
         const { companyId } = req.params;
@@ -272,12 +281,9 @@ exports.deleteCompany = async (req, res) => {
             return sendErrorResponse(res, "Company not found", 404, true, true);
         }
 
-        // Check permissions
-        if (role === constants.roles.operator && company.operatorId.toString() !== userId.toString()) {
+        // Operators can only delete their own companies (ownership check)
+        if (role === constants.roles.operator && company.adminId.toString() !== userId.toString()) {
             return sendErrorResponse(res, "You can only delete your own companies", 403, true, true);
-        }
-        if (role !== constants.roles.operator && role !== constants.roles.admin) {
-            return sendErrorResponse(res, "Only operators and admins can delete companies", 403, true, true);
         }
 
         await CompanyModel.findByIdAndDelete(companyId);
@@ -289,7 +295,7 @@ exports.deleteCompany = async (req, res) => {
     }
 };
 
-// Add promo code to company
+// Add promo code to company (permission checked in middleware, operators can only add to their own)
 exports.addPromoCode = async (req, res) => {
     try {
         const { companyId } = req.params;
@@ -300,12 +306,9 @@ exports.addPromoCode = async (req, res) => {
             return sendErrorResponse(res, "Company not found", 404, true, true);
         }
 
-        // Check permissions
-        if (role === constants.roles.operator && company.operatorId.toString() !== userId.toString()) {
+        // Operators can only add promo codes to their own companies (ownership check)
+        if (role === constants.roles.operator && company.adminId.toString() !== userId.toString()) {
             return sendErrorResponse(res, "You can only add promo codes to your own companies", 403, true, true);
-        }
-        if (role !== constants.roles.operator && role !== constants.roles.admin) {
-            return sendErrorResponse(res, "Only operators and admins can add promo codes", 403, true, true);
         }
 
         const newPromo = {
@@ -329,7 +332,7 @@ exports.addPromoCode = async (req, res) => {
     }
 };
 
-// Update promo code
+// Update promo code (permission checked in middleware, operators can only update their own)
 exports.updatePromoCode = async (req, res) => {
     try {
         const { companyId, promoId } = req.params;
@@ -340,12 +343,9 @@ exports.updatePromoCode = async (req, res) => {
             return sendErrorResponse(res, "Company not found", 404, true, true);
         }
 
-        // Check permissions
-        if (role === constants.roles.operator && company.operatorId.toString() !== userId.toString()) {
+        // Operators can only update promo codes for their own companies (ownership check)
+        if (role === constants.roles.operator && company.adminId.toString() !== userId.toString()) {
             return sendErrorResponse(res, "You can only update promo codes for your own companies", 403, true, true);
-        }
-        if (role !== constants.roles.operator && role !== constants.roles.admin) {
-            return sendErrorResponse(res, "Only operators and admins can update promo codes", 403, true, true);
         }
 
         const promoIndex = company.promoCodes.findIndex(p => p.id === promoId || p._id?.toString() === promoId);
@@ -368,7 +368,7 @@ exports.updatePromoCode = async (req, res) => {
     }
 };
 
-// Delete promo code
+// Delete promo code (permission checked in middleware, operators can only delete their own)
 exports.deletePromoCode = async (req, res) => {
     try {
         const { companyId, promoId } = req.params;
@@ -379,12 +379,9 @@ exports.deletePromoCode = async (req, res) => {
             return sendErrorResponse(res, "Company not found", 404, true, true);
         }
 
-        // Check permissions
-        if (role === constants.roles.operator && company.operatorId.toString() !== userId.toString()) {
+        // Operators can only delete promo codes from their own companies (ownership check)
+        if (role === constants.roles.operator && company.adminId.toString() !== userId.toString()) {
             return sendErrorResponse(res, "You can only delete promo codes from your own companies", 403, true, true);
-        }
-        if (role !== constants.roles.operator && role !== constants.roles.admin) {
-            return sendErrorResponse(res, "Only operators and admins can delete promo codes", 403, true, true);
         }
 
         company.promoCodes = company.promoCodes.filter(
@@ -400,4 +397,43 @@ exports.deletePromoCode = async (req, res) => {
     }
 };
 
+// Request company addition (user must be logged in, authentication required)
+exports.requestCompanyAddition = async (req, res) => {
+    try {
+        const { _id: userId } = req.user;
 
+        let logo = "";
+        if (req.files && req.files.logo) {
+            logo = req.files.logo[0];
+            const pathN = logo.path.replace(/\\/g, "/");
+            logo.path = pathN;
+
+            const url = await r2.uploadPublic(logo.path, `${logo.filename}`, "CompanyRequests");
+            logo = url;
+        }
+
+        const companyData = {
+            ...req.body,
+            addedBy: userId,
+            status: 'pending',
+            ratingsAggregate: 0,
+            totalReviews: 0,
+            logo: logo,
+            promoCodes: req.body.promoCodes || []
+        };
+
+        const company = new CompanyModel(companyData);
+        const savedCompany = await company.save();
+
+        await savedCompany.populate('addedBy', 'fullName email profileImage');
+
+        const companyObj = savedCompany.toObject();
+        companyObj.id = companyObj._id.toString();
+        return sendSuccessResponse(res, {
+            message: "Company addition request submitted successfully. It will be reviewed by an admin or operator.",
+            data: companyObj
+        }, 201);
+    } catch (error) {
+        return sendErrorResponse(res, error);
+    }
+};

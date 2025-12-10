@@ -12,7 +12,8 @@ const CompanySchema = new Schema(
         status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
         ratingsAggregate: { type: Number, default: 0 },
         totalReviews: { type: Number, default: 0 },
-        operatorId: { type: Schema.Types.ObjectId, ref: 'user' },
+        addedBy: { type: Schema.Types.ObjectId, ref: 'user' },
+        adminId: { type: Schema.Types.ObjectId, ref: 'user' },
         promoCodes: [{
             id: String,
             code: { type: String, required: true },

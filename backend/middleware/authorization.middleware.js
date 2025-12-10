@@ -28,7 +28,7 @@ exports.permissionAuthorization = (
 ) => {
   return async (req, res, next) => {
     try {
-      // Check if user has special permission
+      // Check if user has special permission (e.g., Admin role bypasses permission checks)
       if (
         specialpermission.length > 0 &&
         specialpermission.includes(req.user.role)
@@ -52,35 +52,38 @@ exports.permissionAuthorization = (
 
       // Ensure moduleNames is an array
       moduleNames = Array.isArray(moduleNames) ? moduleNames : [moduleNames];
+      // Ensure permission is an array
+      const requiredPermissions = Array.isArray(permission) ? permission : [permission];
 
       // Check permissions for each module
       for (const moduleName of moduleNames) {
-        const [module, per] = moduleName.split(".");
-
-        if (!module || !per) {
-          return sendErrorResponse(
-            res,
-            "Invalid module or permission format",
-            403,
-            true,
-            true
-          );
+        let modulePath = moduleName;
+        if (!moduleName.includes(".")) {
+          modulePath = `commonPermissions.${moduleName}`;
         }
 
-        // Check if the module and permission exist in the permissions object
-        const assignedPermissions = permissions[module.trim()]?.[per.trim()];
+        const parts = modulePath.split(".");
+        let assignedPermissions = permissions.toObject();
+
+        // Navigate through the nested structure
+        for (const part of parts) {
+          if (assignedPermissions && assignedPermissions[part]) {
+            assignedPermissions = assignedPermissions[part];
+          } else {
+            assignedPermissions = null;
+            break;
+          }
+        }
+
         if (!assignedPermissions) {
-          return sendErrorResponse(
-            res,
-            "You are not authorized to perform this operation",
-            403,
-            true,
-            true
-          );
+          continue; // Try next module
         }
 
         // Verify if all required permissions are present
-        const allowed = permission.every((p) => assignedPermissions[p]);
+        const allowed = requiredPermissions.every((p) => {
+          const permValue = assignedPermissions[p];
+          return permValue === true || (typeof permValue === 'object' && permValue?.value === true);
+        });
 
         if (allowed) {
           return next(); // Exit middleware if allowed
